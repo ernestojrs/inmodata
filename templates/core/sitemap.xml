@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>{{ base_url }}{% url 'home' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'listings:list' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'methodology' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'privacy' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'terms' %}</loc>
+    </url>
+
+    {% for listing in listings %}
+        <url>
+            <loc>{{ base_url }}{% url 'listings:detail' listing.pk %}</loc>
+            <lastmod>{{ listing.updated_at|date:"c" }}</lastmod>
+        </url>
+    {% endfor %}
+</urlset>

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Propiedades | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Apartamentos en venta</p>
+
+<h1>Explorar propiedades</h1>
+
+<p class="lead">
+    Compara precio, tamaño y precio por metro cuadrado.
+</p>
+
+<form method="get" class="filter-form">
+
+    <div>
+        <label for="q">Buscar sector o ciudad</label>
+        <input
+            type="search"
+            name="q"
+            id="q"
+            value="{{ entered_query }}"
+            placeholder="Ej.: Naco o Santo Domingo"
+        >
+    </div>
+    <div>
+        <label for="sector">Sector</label>
+        <select name="sector" id="sector">
+            <option value="">Todos los sectores</option>
+            {% for sector in sectors %}
+                <option value="{{ sector }}"
+                    {% if sector == selected_sector %}selected{% endif %}>
+                    {{ sector }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label for="bedrooms">Habitaciones (mín.)</label>
+        <select name="bedrooms" id="bedrooms">
+            <option value="">Cualquiera</option>
+            <option value="1" {% if selected_bedrooms == "1" %}selected{% endif %}>1+</option>
+            <option value="2" {% if selected_bedrooms == "2" %}selected{% endif %}>2+</option>
+            <option value="3" {% if selected_bedrooms == "3" %}selected{% endif %}>3+</option>
+            <option value="4" {% if selected_bedrooms == "4" %}selected{% endif %}>4+</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="min_price">Precio mín. (US$)</label>
+        <input type="number" name="min_price" id="min_price" min="0" step="0.01" value="{{ entered_min_price }}">
+    </div>
+
+    <div>
+        <label for="max_price">Precio máx. (US$)</label>
+        <input type="number" name="max_price" id="max_price" min="0" step="0.01" value="{{ entered_max_price }}">
+    </div>
+
+    <div>
+        <label for="min_area_m2">Área mín. (m²)</label>
+        <input type="number" name="min_area_m2" id="min_area_m2" min="0" step="0.01" value="{{ entered_min_area_m2 }}">
+    </div>
+
+    <div>
+        <label for="max_area_m2">Área máx. (m²)</label>
+        <input type="number" name="max_area_m2" id="max_area_m2" min="0" step="0.01" value="{{ entered_max_area_m2 }}">
+    </div>
+
+    <div>
+        <label for="sort">Ordenar por</label>
+        <select name="sort" id="sort">
+            <option value="recent"
+                {% if selected_sort == "recent" %}selected{% endif %}>
+                Más recientes
+            </option>
+
+            <option value="price_low"
+                {% if selected_sort == "price_low" %}selected{% endif %}>
+                Menor precio
+            </option>
+
+            <option value="price_high"
+                {% if selected_sort == "price_high" %}selected{% endif %}>
+                Mayor precio
+            </option>
+
+            <option value="price_per_m2_low"
+                {% if selected_sort == "price_per_m2_low" %}selected{% endif %}>
+                Menor precio por m²
+            </option>
+
+            <option value="price_per_m2_high"
+                {% if selected_sort == "price_per_m2_high" %}selected{% endif %}>
+                Mayor precio por m²
+            </option>
+        </select>
+    </div>
+
+    <button type="submit">Filtrar</button>
+</form>
+
+<p class="results-count">
+    {% if results_count == 1 %}
+        1 propiedad encontrada.
+    {% else %}
+        {{ results_count }} propiedades encontradas.
+    {% endif %}
+
+    {% if base_query %}
+        <a class="clear-filters" href="{% url 'listings:list' %}">
+            Limpiar filtros
+        </a>
+    {% endif %}
+</p>
+
+{% if page_obj.object_list %}
+    <table>
+        <thead>
+            <tr>
+                <th>Sector</th>
+                <th>Precio</th>
+                <th>Área</th>
+                <th>Precio por m²</th>
+                <th>Habitaciones</th>
+                <th>Baños</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for listing in page_obj %}
+                <tr>
+                    <td>{{ listing.sector }}</td>
+                    <td>US$ {{ listing.price|floatformat:0 }}</td>
+                    <td>{{ listing.area_m2|floatformat:0 }} m²</td>
+                    <td>US$ {{ listing.calculated_price_per_m2|floatformat:0 }}</td>
+                    <td>{{ listing.bedrooms|default:"—" }}</td>
+                    <td>{{ listing.bathrooms|default:"—" }}</td>
+                    <td>
+                        {% if listing.is_stale %}
+                            <span class="stale-listing">Actualización pendiente</span>
+                        {% else %}
+                            <span class="fresh-listing">
+                                Actualizado {{ listing.last_seen_at|date:"d/m/Y" }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a class="source-link" href="{% url 'listings:detail' listing.pk %}">
+                            Ver análisis
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if page_obj.has_other_pages %}
+        <nav class="pagination" aria-label="Paginación de propiedades">
+            {% if page_obj.has_previous %}
+                <a href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                    ← Anterior
+                </a>
+            {% endif %}
+
+            <span>
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.next_page_number }}">
+                    Siguiente →
+                </a>
+            {% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <section class="card">
+        <h2>No hay propiedades para este filtro</h2>
+        <p>Prueba cambiar los filtros.</p>
+    </section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ sector }} | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Reporte de sector</p>
+
+<h1>Mercado inmobiliario en {{ sector }}</h1>
+
+<p class="lead">
+    Datos de apartamentos activos en venta en {{ sector }},
+    Santo Domingo.
+</p>
+
+<section class="card">
+    <p>Propiedades analizadas: <strong>{{ listings_count }}</strong></p>
+
+    <p>
+        Última actualización:
+        <strong>{{ last_updated|date:"d/m/Y H:i" }}</strong>
+    </p>
+
+    {% if sample_is_small %}
+        <p class="sample-warning">
+            Esta muestra es pequeña. Los resultados son orientativos.
+        </p>
+    {% endif %}
+</section>
+
+<table>
+    <tbody>
+        <tr>
+            <th>Precio promedio</th>
+            <td>US$ {{ average_price|floatformat:0 }}</td>
+        </tr>
+        <tr>
+            <th>Precio mediano por m²</th>
+            <td>US$ {{ median_price_per_m2|floatformat:0 }}</td>
+        </tr>
+        <tr>
+            <th>Precio más bajo por m²</th>
+            <td>US$ {{ lowest_price_per_m2|floatformat:0 }}</td>
+        </tr>
+        <tr>
+            <th>Precio más alto por m²</th>
+            <td>US$ {{ highest_price_per_m2|floatformat:0 }}</td>
+        </tr>
+        <tr>
+            <th>Oportunidades detectadas</th>
+            <td>{{ opportunities_count }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Propiedades recientes</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Precio</th>
+            <th>Área</th>
+            <th>Precio por m²</th>
+            <th>Habitaciones</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for listing in listings %}
+            <tr>
+                <td>US$ {{ listing.price|floatformat:0 }}</td>
+                <td>{{ listing.area_m2|floatformat:0 }} m²</td>
+                <td>US$ {{ listing.price_per_m2|floatformat:0 }}</td>
+                <td>{{ listing.bedrooms|default:"No disponible" }}</td>
+                <td>
+                    <a
+                        class="source-link"
+                        href="{% url 'listings:detail' listing.pk %}"
+                    >
+                        Ver análisis
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p>
+    <a class="source-link" href="{% url 'listings:list' %}?sector={{ sector }}">
+        Ver todas las propiedades en {{ sector }}
+    </a>
+</p>
+{% endblock %}

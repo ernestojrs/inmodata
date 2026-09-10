@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis de propiedad | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Análisis de propiedad</p>
+
+<h1>Apartamento en {{ listing.sector }}</h1>
+
+<p class="lead">
+    Comparación del precio de esta propiedad con apartamentos activos
+    del mismo sector.
+</p>
+
+{% if listing.is_stale %}
+    <section class="card stale-card">
+        <strong>Actualización pendiente</strong>
+        <p>
+            Esta propiedad no ha sido verificada en los últimos 14 días.
+            Confirma su disponibilidad antes de tomar una decisión.
+        </p>
+    </section>
+{% else %}
+    <p class="confidence-note">
+        Última vez verificada:
+        <strong>{{ listing.last_seen_at|date:"d/m/Y H:i" }}</strong>
+    </p>
+{% endif %}
+
+<section class="card">
+    <table>
+        <tbody>
+            <tr>
+                <th>Precio</th>
+                <td>{{ listing.currency }} {{ listing.price|floatformat:0 }}</td>
+            </tr>
+            <tr>
+                <th>Área</th>
+                <td>{{ listing.area_m2|floatformat:0 }} m²</td>
+            </tr>
+            <tr>
+                <th>Precio por m²</th>
+                <td>{{ listing.currency }} {{ listing.price_per_m2|floatformat:0 }}</td>
+            </tr>
+            <tr>
+                <th>Habitaciones</th>
+                <td>{{ listing.bedrooms|default:"No disponible" }}</td>
+            </tr>
+            <tr>
+                <th>Baños</th>
+                <td>{{ listing.bathrooms|default:"No disponible" }}</td>
+            </tr>
+            <tr>
+                <th>Parqueos</th>
+                <td>{{ listing.parking_spaces|default:"No disponible" }}</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+{% if analysis %}
+    <section class="card">
+        <p class="eyebrow">Resultado de mercado</p>
+
+        <h2 class="{{ analysis.label_class }}">
+            {{ analysis.label }}
+        </h2>
+
+        <p>
+            El análisis usa <strong>{{ analysis.comparables_count }}</strong>
+            propiedades comparables en {{ listing.sector }}.
+        </p>
+
+        <p class="confidence-note">
+            Última actualización:
+            <strong>{{ analysis.last_updated|date:"d/m/Y H:i"|default:"No disponible" }}</strong>
+        </p>
+
+        {% if analysis.sample_is_small %}
+            <p class="sample-warning">
+                Esta muestra es pequeña. El resultado es orientativo, no una tasación.
+            </p>
+        {% endif %}
+
+        <p>
+            Precio de mercado por m²:
+            <strong>
+                {{ listing.currency }} {{ analysis.market_price_per_m2|floatformat:0 }}
+            </strong>
+        </p>
+
+        <p>
+            Diferencia frente al mercado:
+            <strong>{{ analysis.difference_percent }}%</strong>
+        </p>
+    </section>
+{% else %}
+    <section class="card">
+        <h2>Aún no hay comparables suficientes</h2>
+        <p>
+            InmoData necesita más propiedades activas del mismo sector
+            para calcular una comparación confiable.
+        </p>
+    </section>
+{% endif %}
+
+{% if similar_listings %}
+    <section class="card">
+        <p class="eyebrow">Alternativas similares</p>
+
+        <h2>Propiedades comparables en {{ listing.sector }}</h2>
+
+        <p class="confidence-note">
+            Se priorizan propiedades con habitaciones, área y precio por m² parecidos.
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Precio</th>
+                    <th>Área</th>
+                    <th>Habitaciones</th>
+                    <th>Precio por m²</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for similar_listing in similar_listings %}
+                    <tr>
+                        <td>
+                            {{ similar_listing.currency }}
+                            {{ similar_listing.price|floatformat:0 }}
+                        </td>
+                        <td>{{ similar_listing.area_m2|floatformat:0 }} m²</td>
+                        <td>{{ similar_listing.bedrooms|default:"No disponible" }}</td>
+                        <td>
+                            {{ similar_listing.currency }}
+                            {{ similar_listing.price_per_m2|floatformat:0 }}
+                        </td>
+                        <td>
+                            <a
+                                class="source-link"
+                                href="{% url 'listings:compare' %}?listing_1={{ listing.pk }}&listing_2={{ similar_listing.pk }}"
+                            >
+                                Comparar
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endif %}
+
+{% if price_history %}
+{% if price_change %}
+    <h2 class="{{ price_change.label_class }}">
+        {{ price_change.label }}
+    </h2>
+    <p>
+        Cambio:
+        <strong>
+            {{ listing.currency }} {{ price_change.amount|floatformat:0 }}
+        </strong>
+        {% if price_change.percent is not None %}
+            ({{ price_change.percent }}%)
+        {% endif %}
+    </p>
+{% endif %}
+    <section class="card">
+        <p class="eyebrow">Historial de precio</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha registrada</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for snapshot in price_history %}
+                    <tr>
+                        <td>{{ snapshot.recorded_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {{ snapshot.currency }}
+                            {{ snapshot.price|floatformat:0 }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endif %}
+
+<p>
+    <a class="source-link" href="{% url 'listings:list' %}">
+        ← Volver a propiedades
+    </a>
+</p>
+
+<p>
+
+    <p>
+        <a
+            class="share-link"
+            href="https://wa.me/?text={{ share_text|urlencode }}"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Compartir análisis por WhatsApp
+        </a>
+    </p>
+    <a
+        class="source-link"
+        href="{{ listing.source_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        Ver publicación original
+    </a>
+</p>
+{% endblock %}

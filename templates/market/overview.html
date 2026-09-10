@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Mercado | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Datos de mercado</p>
+
+<h1>Mercado inmobiliario</h1>
+
+<p class="lead">
+    Precio promedio de apartamentos activos en venta,
+    calculado con los datos disponibles en InmoData.
+</p>
+
+<form method="get" class="market-sort-form">
+    <label for="sort">Ordenar sectores por</label>
+
+    <select name="sort" id="sort">
+        <option
+            value="price_per_m2_low"
+            {% if selected_sort == "price_per_m2_low" %}selected{% endif %}
+        >
+            Menor precio por m²
+        </option>
+
+        <option
+            value="price_per_m2_high"
+            {% if selected_sort == "price_per_m2_high" %}selected{% endif %}
+        >
+            Mayor precio por m²
+        </option>
+
+        <option
+            value="most_listings"
+            {% if selected_sort == "most_listings" %}selected{% endif %}
+        >
+            Más propiedades registradas
+        </option>
+
+        <option
+            value="sector_name"
+            {% if selected_sort == "sector_name" %}selected{% endif %}
+        >
+            Nombre del sector
+        </option>
+    </select>
+
+    <button type="submit">Ordenar</button>
+</form>
+
+<section class="card">
+    <p>Listados analizados: <strong>{{ total_listings }}</strong></p>
+    <p>
+        Última actualización:
+        <strong>{{ last_updated|date:"d/m/Y H:i"|default:"No disponible" }}</strong>
+    </p>
+    <p class="confidence-note">
+        Un sector con menos de 5 propiedades se marca como muestra pequeña.
+    </p>
+</section>
+
+
+
+{% if sector_stats %}
+    <table>
+        <thead>
+            <tr>
+                <th>Sector</th>
+                <th>Propiedades</th>
+                <th>Precio promedio</th>
+                <th>Precio promedio por m²</th>
+                <th>Confianza</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in sector_stats %}
+                <tr>
+                    <td>
+                        <a
+                            class="source-link"
+                            href="{% url 'market:sector_detail' stat.sector %}"
+                        >
+                            {{ stat.sector }}
+                        </a>
+                    </td>
+                    <td>{{ stat.listings_count }}</td>
+                    <td>US$ {{ stat.average_price|floatformat:0 }}</td>
+                    <td>US$ {{ stat.average_price_per_m2|floatformat:0 }}</td>
+                    <td>
+                        {% if stat.listings_count < 5 %}
+                            Muestra pequeña
+                        {% else %}
+                            Aceptable
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <section class="card">
+        <h2>Aún no hay datos suficientes</h2>
+        <p>
+            Cuando InmoData tenga propiedades verificadas, aquí aparecerán
+            estadísticas por sector.
+        </p>
+    </section>
+{% endif %}
+{% endblock %}

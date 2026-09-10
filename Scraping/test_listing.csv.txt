@@ -1,0 +1,3 @@
+source,source_listing_id,source_url,property_type,operation_type,sector,city,price,currency,area_m2,bedrooms,bathrooms,parking_spaces,is_active
+manual,MANUAL-001,https://example.com/listing/manual-001,apartment,sale,Naco,Santo Domingo,205000.00,USD,100.00,2,2.0,1,true
+manual,MANUAL-002,https://example.com/listing/manual-002,apartment,sale,Piantini,Santo Domingo,410000.00,USD,170.00,3,3.5,2,true

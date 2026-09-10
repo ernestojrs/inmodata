@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Oportunidades | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Análisis de mercado</p>
+
+<h1>Oportunidades inmobiliarias</h1>
+
+<p class="lead">
+    Propiedades con un precio por m² al menos 10% por debajo
+    de propiedades comparables en el mismo sector.
+</p>
+
+<section class="card">
+    <p class="confidence-note">
+        Esta página es orientativa. Una oportunidad no sustituye una tasación,
+        inspección técnica ni revisión legal de la propiedad.
+    </p>
+</section>
+
+{% if opportunities %}
+    <table>
+        <thead>
+            <tr>
+                <th>Sector</th>
+                <th>Precio</th>
+                <th>Área</th>
+                <th>Precio por m²</th>
+                <th>Mercado por m²</th>
+                <th>Diferencia</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for opportunity in opportunities %}
+                <tr>
+                    <td>{{ opportunity.listing.sector }}</td>
+                    <td>US$ {{ opportunity.listing.price|floatformat:0 }}</td>
+                    <td>{{ opportunity.listing.area_m2|floatformat:0 }} m²</td>
+                    <td>US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}</td>
+                    <td>US$ {{ opportunity.market_price_per_m2|floatformat:0 }}</td>
+                    <td class="below-market">
+                        {{ opportunity.difference_percent }}%
+                    </td>
+                    <td>
+                        <a
+                            class="source-link"
+                            href="{% url 'listings:detail' opportunity.listing.pk %}"
+                        >
+                            Ver análisis
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <section class="card">
+        <h2>Aún no hay oportunidades detectadas</h2>
+        <p>
+            InmoData necesita al menos tres propiedades comparables
+            en un sector para identificar oportunidades con prudencia.
+        </p>
+    </section>
+{% endif %}
+{% endblock %}

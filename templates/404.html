@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Página no encontrada | InmoData{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">Error 404</p>
+
+    <h1>Esta página no existe.</h1>
+
+    <p class="lead">
+        Puede que la propiedad haya sido eliminada, el enlace esté incompleto
+        o la página haya cambiado de dirección.
+    </p>
+
+    <p>
+        <a class="button" href="{% url 'home' %}">
+            Volver al inicio
+        </a>
+    </p>
+
+    <p>
+        <a class="source-link" href="{% url 'listings:list' %}">
+            Explorar propiedades disponibles
+        </a>
+    </p>
+</section>
+{% endblock %}

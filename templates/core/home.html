@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}InmoData | Inteligencia inmobiliaria{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">República Dominicana</p>
+
+    <h1>Entiende el precio real de una propiedad.</h1>
+
+    <p class="lead">
+        InmoData ayuda a compradores a explorar precios, comparar
+        propiedades y tomar decisiones con datos inmobiliarios.
+    </p>
+
+    <a class="button" href="{% url 'listings:list' %}">
+        Explorar propiedades
+    </a>
+</section>
+
+<section class="feature-grid">
+    <a class="feature-card" href="{% url 'market:valuation' %}">
+        <p class="eyebrow">Evaluación</p>
+        <h2>¿El precio es justo?</h2>
+        <p>
+            Compara el precio por m² de una propiedad con su sector.
+        </p>
+    </a>
+
+    <a class="feature-card" href="{% url 'market:opportunities' %}">
+        <p class="eyebrow">Oportunidades</p>
+        <h2>Encuentra mejores valores</h2>
+        <p>
+            Explora propiedades con precios por debajo del mercado local.
+        </p>
+    </a>
+
+    <a class="feature-card" href="{% url 'market:price_drops' %}">
+        <p class="eyebrow">Seguimiento</p>
+        <h2>Bajas de precio</h2>
+        <p>
+            Revisa propiedades cuyo precio ha disminuido con el tiempo.
+        </p>
+    </a>
+
+    <a class="feature-card" href="{% url 'listings:compare' %}">
+        <p class="eyebrow">Comparación</p>
+        <h2>Compara propiedades</h2>
+        <p>
+            Analiza precio, área, habitaciones y precio por m².
+        </p>
+    </a>
+
+    <a class="feature-card" href="{% url 'market:mortgage' %}">
+        <p class="eyebrow">Financiamiento</p>
+        <h2>Calcula tu cuota</h2>
+        <p>
+            Estima pagos mensuales antes de solicitar financiamiento.
+        </p>
+    </a>
+
+    <a class="feature-card" href="{% url 'market:overview' %}">
+        <p class="eyebrow">Mercado</p>
+        <h2>Datos por sector</h2>
+        <p>
+            Consulta precios promedio y actividad inmobiliaria local.
+        </p>
+    </a>
+</section>
+
+<section class="card how-it-works">
+    <p class="eyebrow">Cómo funciona</p>
+
+    <h2>Decisiones más claras, paso a paso.</h2>
+
+    <ol>
+        <li>Explora propiedades o ingresa el precio de una que te interesa.</li>
+        <li>Compara el precio por m² con propiedades del mismo sector.</li>
+        <li>Revisa oportunidades, bajas de precio y opciones de financiamiento.</li>
+    </ol>
+
+    <p class="confidence-note">
+        InmoData ofrece información orientativa. No reemplaza una tasación,
+        inspección técnica, análisis legal ni una oferta financiera formal.
+    </p>
+</section>
+{% endblock %}

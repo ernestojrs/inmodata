@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Metodología | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Transparencia de datos</p>
+
+<h1>Cómo calcula InmoData</h1>
+
+<p class="lead">
+    InmoData ayuda a interpretar precios inmobiliarios, pero no reemplaza
+    una tasación profesional, inspección técnica o revisión legal.
+</p>
+
+<section class="card">
+    <h2>Precio por metro cuadrado</h2>
+
+    <p>
+        Para cada propiedad, calculamos:
+    </p>
+
+    <p>
+        <strong>Precio por m² = precio de venta ÷ área de construcción</strong>
+    </p>
+
+    <p>
+        Esto permite comparar propiedades de tamaños diferentes dentro
+        de un mismo sector.
+    </p>
+</section>
+
+<section class="card">
+    <h2>Rango de mercado</h2>
+
+    <p>
+        InmoData usa la mediana del precio por m² de propiedades activas
+        comparables en el mismo sector.
+    </p>
+
+    <ul>
+        <li>
+            <strong>Por debajo del mercado:</strong>
+            precio por m² al menos 10% menor que la referencia.
+        </li>
+        <li>
+            <strong>Dentro del rango de mercado:</strong>
+            entre 10% por debajo y 10% por encima.
+        </li>
+        <li>
+            <strong>Por encima del mercado:</strong>
+            más de 10% sobre la referencia.
+        </li>
+    </ul>
+</section>
+
+<section class="card">
+    <h2>Calidad y actualización de datos</h2>
+
+    <p>
+        Un sector con menos de cinco propiedades comparables se considera
+        una muestra pequeña y sus resultados son orientativos.
+    </p>
+
+    <p>
+        Una propiedad se marca como actualización pendiente si no ha sido
+        revisada en los últimos 14 días.
+    </p>
+
+    <p>
+        Los cambios de precio se basan en los precios registrados
+        por InmoData a lo largo del tiempo.
+    </p>
+</section>
+
+<section class="card">
+    <h2>Limitaciones importantes</h2>
+
+    <ul>
+        <li>El precio publicado no siempre es el precio final de venta.</li>
+        <li>La condición, ubicación exacta y calidad del edificio afectan el valor.</li>
+        <li>Dos propiedades del mismo sector pueden tener características muy distintas.</li>
+        <li>Verifica disponibilidad, documentos y condiciones directamente con la fuente.</li>
+    </ul>
+
+    <p class="confidence-note">
+        InmoData ofrece información educativa y orientativa.
+        No constituye asesoría financiera, legal ni una tasación certificada.
+    </p>
+</section>
+{% endblock %}

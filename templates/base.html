@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}InmoData{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container nav-container">
+            <a class="brand" href="/">InmoData</a>
+
+            <nav class="nav-links">
+                <a href="/">Inicio</a>
+                <a href="/mercado/">Mercado</a>
+                <a href="/propiedades/">Propiedades</a>
+                <a href="/mercado/valorar/">Valorar</a>
+                <a href="/mercado/oportunidades/">Oportunidades</a>
+                <a href="/propiedades/comparar/">Comparar</a>
+                <a href="/mercado/financiamiento/">Financiamiento</a>
+                <a href="/mercado/bajas-de-precio/">Bajas de precio</a>
+                <a href="{% url 'methodology' %}">Metodología</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>
+                InmoData · Datos inmobiliarios para República Dominicana ·
+                <a class="source-link" href="{% url 'privacy' %}">Privacidad</a> ·
+                <a class="source-link" href="{% url 'terms' %}">Términos</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

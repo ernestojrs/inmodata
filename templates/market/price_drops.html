@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Bajas de precio | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Seguimiento de mercado</p>
+
+<h1>Propiedades con bajas de precio</h1>
+
+<p class="lead">
+    Propiedades activas cuyo precio más reciente es menor
+    que su primer precio registrado por InmoData.
+</p>
+
+<section class="card">
+    <p class="confidence-note">
+        Una baja de precio no garantiza que una propiedad sea una oportunidad.
+        Revisa el análisis, las condiciones del inmueble y su disponibilidad.
+    </p>
+</section>
+
+{% if price_drops %}
+    <table>
+        <thead>
+            <tr>
+                <th>Sector</th>
+                <th>Precio anterior</th>
+                <th>Precio actual</th>
+                <th>Reducción</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for drop in price_drops %}
+                <tr>
+                    <td>{{ drop.listing.sector }}</td>
+                    <td>US$ {{ drop.old_price|floatformat:0 }}</td>
+                    <td>US$ {{ drop.new_price|floatformat:0 }}</td>
+                    <td class="price-reduced">
+                        -US$ {{ drop.amount|floatformat:0 }}
+                        ({{ drop.percent }}%)
+                    </td>
+                    <td>
+                        <a
+                            class="source-link"
+                            href="{% url 'listings:detail' drop.listing.pk %}"
+                        >
+                            Ver análisis
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <section class="card">
+        <h2>Aún no hay bajas de precio registradas</h2>
+        <p>
+            InmoData mostrará resultados aquí cuando una propiedad
+            tenga al menos dos precios registrados y el último sea menor.
+        </p>
+    </section>
+{% endif %}
+{% endblock %}
