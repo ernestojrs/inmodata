@@ -28,6 +28,7 @@
                 <th>Área</th>
                 <th>Precio por m²</th>
                 <th>Mercado por m²</th>
+                <th>Comparables</th>
                 <th>Diferencia</th>
                 <th></th>
             </tr>
@@ -40,6 +41,7 @@
                     <td>{{ opportunity.listing.area_m2|floatformat:0 }} m²</td>
                     <td>US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}</td>
                     <td>US$ {{ opportunity.market_price_per_m2|floatformat:0 }}</td>
+                    <td>{{ opportunity.comparables_count }}</td>
                     <td class="below-market">
                         {{ opportunity.difference_percent }}%
                     </td>

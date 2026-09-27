@@ -2,12 +2,13 @@ from django.test import TestCase
 from io import StringIO
 from decimal import Decimal
 from pathlib import Path
-from .models import Listing, ListingPriceSnapshot
+from .models import Listing, ListingPriceSnapshot, ImportRun
 from tempfile import TemporaryDirectory
 from django.urls import reverse
 from django.core.management import call_command
 from datetime import timedelta
-
+from django.core.files.uploadedfile import SimpleUploadedFile
+from .services import get_comparable_listings
 from django.utils import timezone
 
 # Create your tests here.
@@ -65,6 +66,51 @@ class ListingModelTests(TestCase):
         self.assertEqual(
             listing.freshness_label,
             "Datos pendientes de actualización",
+        )
+
+class ComparableListingServiceTests(TestCase):
+    def test_prefers_similar_size_and_bedrooms(self):
+        for number, area_m2, price in [
+            ("001", "95", "190000"),
+            ("002", "100", "200000"),
+            ("003", "110", "220000"),
+        ]:
+            Listing.objects.create(
+                source=Listing.Source.MANUAL,
+                source_listing_id=f"NACO-SIMILAR-{number}",
+                source_url=(
+                    f"https://example.com/naco-similar-{number}"
+                ),
+                sector="Naco",
+                city="Santo Domingo",
+                price=Decimal(price),
+                area_m2=Decimal(area_m2),
+                bedrooms=2,
+            )
+
+        large_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="NACO-LARGE-001",
+            source_url="https://example.com/naco-large-001",
+            sector="Naco",
+            city="Santo Domingo",
+            price=Decimal("1000000"),
+            area_m2=Decimal("400"),
+            bedrooms=4,
+        )
+
+        comparables, comparison_note = get_comparable_listings(
+            sector="Naco",
+            target_area_m2=Decimal("100"),
+            target_bedrooms=2,
+        )
+
+        self.assertEqual(comparables.count(), 3)
+        self.assertNotIn(large_listing, comparables)
+
+        self.assertEqual(
+            comparison_note,
+            "Comparación ajustada por tamaño y habitaciones.",
         )
 
 class ListingDetailPriceChangeTests(TestCase):
@@ -330,6 +376,8 @@ class ImportListingsCsvCommandTests(TestCase):
             ).exists()
         )
 
+        self.assertEqual(ImportRun.objects.count(), 0)
+
         self.assertIn(
             "Simulación completada",
             output.getvalue(),
@@ -363,6 +411,14 @@ class ImportListingsCsvCommandTests(TestCase):
         self.assertEqual(listing.price, Decimal("250000"))
         self.assertEqual(listing.area_m2, Decimal("125"))
         self.assertEqual(listing.price_history.count(), 1)
+
+        import_run = ImportRun.objects.get()
+
+        self.assertEqual(import_run.sources, "manual")
+        self.assertEqual(import_run.file_name, "listings.csv")
+        self.assertEqual(import_run.created_count, 1)
+        self.assertEqual(import_run.updated_count, 0)
+        self.assertEqual(import_run.skipped_count, 0)
 
     def test_deactivate_missing_dry_run_keeps_listing_active(self):
         old_listing = Listing.objects.create(
@@ -404,3 +460,56 @@ class ImportListingsCsvCommandTests(TestCase):
 
         self.assertTrue(old_listing.is_active)
 
+class CsvUploadViewTests(TestCase):
+    def test_staff_user_can_simulate_csv_import(self):
+        user = self.client.login(
+            username="admin",
+            password="admin-password",
+        )
+
+        if not user:
+            from django.contrib.auth import get_user_model
+
+            user_model = get_user_model()
+
+            user_model.objects.create_superuser(
+                username="admin",
+                email="admin@example.com",
+                password="admin-password",
+            )
+
+            self.client.login(
+                username="admin",
+                password="admin-password",
+            )
+
+        csv_file = SimpleUploadedFile(
+            "listings.csv",
+            (
+                b"source,source_listing_id,source_url,property_type,"
+                b"operation_type,sector,city,price,currency,area_m2,"
+                b"bedrooms,bathrooms,parking_spaces,is_active\n"
+                b"manual,UPLOAD-001,https://example.com/upload-001,"
+                b"apartment,sale,Naco,Santo Domingo,200000,USD,100,"
+                b"2,2,1,true\n"
+            ),
+            content_type="text/csv",
+        )
+
+        response = self.client.post(
+            reverse("listings:import_upload"),
+            {
+                "csv_file": csv_file,
+                "dry_run": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Simulación completada")
+        self.assertFalse(
+            Listing.objects.filter(
+                source_listing_id="UPLOAD-001"
+            ).exists()
+        )
+
+        

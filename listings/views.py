@@ -4,7 +4,14 @@ from .models import Listing
 from decimal import Decimal, InvalidOperation
 from statistics import mean, median
 from django.core.paginator import Paginator
-
+from io import StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from .forms import CsvImportForm
+from .services import get_comparable_listings
 # Create your views here.
 
 def parse_optional_decimal(value):
@@ -138,16 +145,12 @@ def listing_detail(request, pk):
         is_active = True,
     )
 
-    comparables = Listing.objects.filter(
-         is_active=True,
-        property_type=listing.property_type,
-        operation_type=listing.operation_type,
+    comparables, comparison_note = get_comparable_listings(
+         sector=listing.sector,
+        target_area_m2=listing.area_m2,
+        target_bedrooms=listing.bedrooms or None,
         currency=listing.currency,
-        sector=listing.sector,
-        price__isnull=False,
-        area_m2__isnull=False,
-        area_m2__gt=0,
-    ).exclude(pk = listing.pk)
+    )
 
     comparable_prices_per_m2 = [
         comparable.price_per_m2
@@ -185,6 +188,7 @@ def listing_detail(request, pk):
             "label_class": label_class,
             "last_updated" : last_updated,
             "sample_is_small" : comparables_count < 5,
+            "comparison_note": comparison_note,
         }
 
     similar_listings = []
@@ -240,12 +244,12 @@ def listing_detail(request, pk):
             "price_history": price_history,
             "price_change" : price_change,
             "similar_listings": similar_listings,
-            "share-text":(
+            "share_text":(
                 f"Revisa este analisis de Inmodata: apartamento en "
-                f"{listing.sector}, {listing.currency} {listing.price}"
-                f"{listing.area_m2} m2."
+                f"{listing.sector}, {listing.currency} {listing.price} \n"
+                f"{listing.area_m2} m2.  \n"
                 f"{request.build_absolute_uri()}"
-            )
+            ),
         }
     )
 
@@ -338,3 +342,63 @@ def compare_listings(request):
             "comparison": comparison,
          },
     )
+
+@staff_member_required
+def import_listings_upload(request):
+    result = None
+
+    if request.method == "POST":
+        form = CsvImportForm(
+            request.POST,
+            request.FILES,
+        )
+
+        if form.is_valid():
+            uploaded_file = form.cleaned_data["csv_file"]
+
+            command_arguments = []
+
+            if form.cleaned_data["dry_run"]:
+                command_arguments.append("--dry-run")
+
+            if form.cleaned_data["deactivate_missing"]:
+                command_arguments.append("--deactivate-missing")
+
+            output = StringIO()
+
+            try:
+                with TemporaryDirectory() as temporary_directory:
+                    csv_path = (
+                        Path(temporary_directory) 
+                        / Path(uploaded_file.name).name
+                    )
+
+                    with csv_path.open("wb") as destination:
+                        for chunk in uploaded_file.chunks():
+                            destination.write(chunk)
+
+                    call_command(
+                        "import_listings_csv",
+                        str(csv_path),
+                        *command_arguments,
+                        stdout = output,
+                    )
+
+                result = output.getvalue()
+
+            except CommandError as error:
+                form.add_error(None, str(error))
+
+    else:
+        form = CsvImportForm()
+
+    return render(
+        request,
+        "listings/import_upload.html",
+        {
+            "form": form,
+            "result": result,
+        }
+    )
+
+                

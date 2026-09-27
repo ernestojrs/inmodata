@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Listing, ListingPriceSnapshot
+from .models import Listing, ListingPriceSnapshot, ImportRun
 
 # Register your models here.
 
@@ -118,3 +118,33 @@ class ListingAdmin(admin.ModelAdmin):
             return "-"
 
         return f"{obj.currency} {obj.price_per_m2:,.2f}"
+
+@admin.register(ImportRun)
+class ImportRunAdmin(admin.ModelAdmin):
+     list_display = (
+        "completed_at",
+        "sources",
+        "file_name",
+        "created_count",
+        "updated_count",
+        "skipped_count",
+        "deactivated_count",
+    )
+
+     list_filter = ("completed_at",)
+
+     search_fields = (
+         "sources",
+         "file_name",
+     )
+
+     readonly_fields = (
+        "sources",
+        "file_name",
+        "created_count",
+        "updated_count",
+        "skipped_count",
+        "deactivated_count",
+        "completed_at",
+     )
+

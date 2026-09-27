@@ -53,6 +53,18 @@
         >
     </div>
 
+    <div>
+        <label for="bedrooms">Habitaciones (opcional)</label>
+        <input
+            type="number"
+            name="bedrooms"
+            id="bedrooms"
+            min="0"
+            step="1"
+            value="{{ entered_bedrooms }}"
+        >
+    </div>
+
     <button type="submit">Evaluar precio</button>
 </form>
 
@@ -73,6 +85,10 @@
             Esta evaluación usa
             <strong>{{ result.comparables_count }}</strong>
             propiedades comparables en {{ result.sector }}.
+        </p>
+
+        <p class="confidence-note">
+            {{ result.comparison_note }}
         </p>
 
         <p class="confidence-note">

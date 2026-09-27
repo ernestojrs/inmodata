@@ -72,6 +72,10 @@
         </p>
 
         <p class="confidence-note">
+            {{ analysis.comparison_note }}
+        </p>
+
+        <p class="confidence-note">
             Última actualización:
             <strong>{{ analysis.last_updated|date:"d/m/Y H:i"|default:"No disponible" }}</strong>
         </p>
@@ -199,17 +203,17 @@
 </p>
 
 <p>
+    <a
+        class="share-link"
+        href="https://wa.me/?text={{ share_text|urlencode }}"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        Compartir análisis por WhatsApp
+    </a>
+</p>
 
-    <p>
-        <a
-            class="share-link"
-            href="https://wa.me/?text={{ share_text|urlencode }}"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            Compartir análisis por WhatsApp
-        </a>
-    </p>
+<p>
     <a
         class="source-link"
         href="{{ listing.source_url }}"

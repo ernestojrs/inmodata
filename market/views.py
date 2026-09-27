@@ -3,22 +3,12 @@ from django.db.models import Avg,DecimalField,Count, F, ExpressionWrapper, Max
 from listings.models import Listing
 from decimal import Decimal, InvalidOperation
 from statistics import mean, median
-from collections import defaultdict
 from django.http import Http404
+from listings.services import get_comparable_listings
 
 # Create your views here.
 
-def get_comparable_listings(sector):
-    return Listing.objects.filter(
-        is_active=True,
-        property_type=Listing.PropertyType.APARTMENT,
-        operation_type=Listing.OperationType.SALE,
-        currency=Listing.Currency.USD,
-        price__isnull=False,
-        area_m2__isnull=False,
-        area_m2__gt=0,
-        sector=sector
-    )
+
 
 def market_overview(request):
     price_per_m2_expression = ExpressionWrapper(
@@ -86,22 +76,31 @@ def valuation(request):
     selected_sector = request.GET.get("sector", "")
     entered_price = request.GET.get("price", "")
     entered_area_m2 = request.GET.get("area_m2", "")
+    entered_bedrooms = request.GET.get("bedrooms","")
 
     result = None
     error = None
 
-    if selected_sector or entered_price or entered_area_m2:
+    if selected_sector or entered_price or entered_area_m2 or entered_bedrooms:
         if not selected_sector or not entered_price or not entered_area_m2:
             error = "completa el sector, el precio y el area para evaluar la propiedad."
         else:
             try:
                 price = Decimal(entered_price)
                 area_m2 = Decimal(entered_area_m2)
+                bedrooms = None
 
-                if price <=0 or area_m2 <=0:
+                if entered_bedrooms:
+                    bedrooms = int(entered_bedrooms)
+
+                if price <=0 or area_m2 <=0 or (bedrooms is not None and bedrooms <0):
                     error = "El precio y el area deben ser mayores a cero."
                 else:
-                    comparables = get_comparable_listings(selected_sector)
+                    comparables, comparison_note = get_comparable_listings(
+                        selected_sector,
+                        area_m2,
+                        bedrooms,
+                    )
                     comparable_prices_per_m2 = [
                         listing.price_per_m2 for listing in comparables if listing.price_per_m2 is not None
                     ]
@@ -146,9 +145,10 @@ def valuation(request):
                                 latest=Max("last_seen_at")
                             )["latest"],
                             "sample_is_small" : len(comparable_prices_per_m2) < 5,
+                            "comparison_note": comparison_note,
                         }
 
-            except InvalidOperation:
+            except (InvalidOperation, ValueError):
                 error = "Ingresa numeros validos para el precio y el area."
 
     return render(
@@ -161,6 +161,7 @@ def valuation(request):
             "entered_area_m2": entered_area_m2,
             "result": result,
             "error": error,
+            "entered_bedrooms": entered_bedrooms,
         }
     )
 
@@ -176,56 +177,64 @@ def opportunities(request):
         area_m2__gt = 0,
     )
 
-    listings_by_sector = defaultdict(list)
-
-    for listing in listings:
-        if listing.price_per_m2 is not None:
-            listings_by_sector[listing.sector].append(listing)
-
+    
     opportunities_list = []
 
-    for sector,sector_listings in listings_by_sector.items():
-        if len(sector_listings) < 3:
+    for listing in listings:
+        bedrooms = listing.bedrooms or None
+
+        comparables, comparison_note = get_comparable_listings(
+            listing.sector,
+            listing.area_m2,
+            bedrooms,
+        )
+
+        comparable_prices_per_m2 = [
+            comparable.price_per_m2
+            for comparable in comparables.exclude(pk=listing.pk)
+            if comparable.price_per_m2 is not None
+        ]
+
+        if len(comparable_prices_per_m2) < 2:
             continue
 
-        for listing in sector_listings:
-            comparable_prices_per_m2 = [
-                comparable.price_per_m2
-                for comparable in sector_listings
-                if comparable.pk != listing.pk
-                and comparable.price_per_m2 is not None
+        market_price_per_m2 = median(comparable_prices_per_m2)
 
-            ]
+        difference_percent = (
+            (
+            listing.price_per_m2 - market_price_per_m2
+        )
+        / market_price_per_m2
+        * Decimal("100")
+        ).quantize(Decimal("0.01"))
 
-            if not comparable_prices_per_m2:
-                continue
+        if difference_percent <= Decimal("-10"):
+            opportunities_list.append(
+                {
+                    "listing": listing,
+                    "market_price_per_m2": market_price_per_m2,
+                    "difference_percent": difference_percent,
+                    "comparables_count": len(
+                        comparable_prices_per_m2),
+                    "comparison_note": comparison_note,  
+                }
+            )
 
-            market_price_per_m2 = median(comparable_prices_per_m2)
-
-            difference_percent = (
-                (listing.price_per_m2 - market_price_per_m2)
-                / market_price_per_m2
-                * Decimal("100")
-            ).quantize(Decimal("0.01"))
-
-            if difference_percent <= Decimal("-10"):
-                opportunities_list.append(
-                    {
-                        "listing": listing,
-                        "market_price_per_m2": market_price_per_m2,
-                        "difference_percent": difference_percent,
-                    }
-                )
-
-    opportunities_list.sort(key=lambda item: item["difference_percent"])
+    opportunities_list.sort(
+        key= lambda item: item["difference_percent"],
+    )
 
     return render(
         request,
         "market/opportunities.html",
         {
             "opportunities": opportunities_list,
-        }
+        },
     )
+
+
+
+    
 
 def mortgage_calculator(request):
     entered_price = request.GET.get("price","")

@@ -68,8 +68,12 @@ class Listing(models.Model):
         if not self.last_seen_at:
             return True
 
-        stale_date = timezone.now() - timedelta(days=settings.LISTING_STALE_AFTER_DAYS)
-        return self.last_seen_at < stale_date
+        stale_after = (
+            timezone.now()
+        - timedelta(days=settings.LISTING_STALE_AFTER_DAYS)
+        )
+
+        return self.last_seen_at < stale_after
 
     @property
     def freshness_label(self):
@@ -77,10 +81,7 @@ class Listing(models.Model):
             return "Datos pendientes de actualización"
         return "Datos Actualizados"
 
-    @property
-    def is_stale(self):
-        stale_after = timezone.now() - timedelta(days=settings.LISTING_STALE_AFTER_DAYS)
-        return self.last_seen_at < stale_after
+    
 
 class ListingPriceSnapshot(models.Model):
     listing = models.ForeignKey(
@@ -109,6 +110,27 @@ class ListingPriceSnapshot(models.Model):
 
     def __str__(self):
         return f"{self.listing.source_listing_id} - {self.currency} {self.price}"
+
+
+class ImportRun(models.Model):
+    sources = models.CharField(max_length=200)
+    file_name = models.CharField(max_length=255)
+
+    created_count = models.PositiveIntegerField(default=0)
+    updated_count = models.PositiveIntegerField(default=0)
+    skipped_count = models.PositiveIntegerField(default=0)
+    deactivated_count = models.PositiveIntegerField(default=0)
+
+    completed_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        return (
+                f"{self.completed_at:%Y-%m-%d %H:%M} - "
+                f"{self.sources}"
+        )
 
     
 

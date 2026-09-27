@@ -565,3 +565,36 @@ th {
     color: var(--primary);
     font-weight: 700;
 }
+
+.upload-form {
+    display: grid;
+    gap: 20px;
+}
+
+.upload-form input[type="file"] {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted-text);
+}
+
+.upload-form button {
+    width: fit-content;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--primary);
+    color: var(--background);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.import-output {
+    overflow-x: auto;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--background);
+    color: var(--muted-text);
+    white-space: pre-wrap;
+}

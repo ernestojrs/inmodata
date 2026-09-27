@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Importar propiedades | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Administración de datos</p>
+
+<h1>Importar propiedades desde CSV</h1>
+
+<p class="lead">
+    Esta herramienta es solo para administradores. El archivo se valida
+    y se procesa automáticamente con las reglas de InmoData.
+</p>
+
+<section class="card">
+    <form method="post" enctype="multipart/form-data" class="upload-form">
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        <div>
+            {{ form.csv_file.label_tag }}
+            {{ form.csv_file }}
+            {% if form.csv_file.help_text %}
+                <p class="confidence-note">
+                    {{ form.csv_file.help_text }}
+                </p>
+            {% endif %}
+            {{ form.csv_file.errors }}
+        </div>
+
+        <div>
+            <label>
+                {{ form.dry_run }}
+                {{ form.dry_run.label }}
+            </label>
+
+            <p class="confidence-note">
+                {{ form.dry_run.help_text }}
+            </p>
+        </div>
+
+        <div>
+            <label>
+                {{ form.deactivate_missing }}
+                {{ form.deactivate_missing.label }}
+            </label>
+
+            <p class="sample-warning">
+                {{ form.deactivate_missing.help_text }}
+            </p>
+        </div>
+
+        <button type="submit">Procesar archivo</button>
+    </form>
+</section>
+
+{% if result %}
+    <section class="card">
+        <p class="eyebrow">Resultado de importación</p>
+        <pre class="import-output">{{ result }}</pre>
+    </section>
+{% endif %}
+{% endblock %}

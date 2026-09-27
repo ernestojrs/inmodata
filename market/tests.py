@@ -177,4 +177,66 @@ class ValuationViewTests(TestCase):
 
         self.assertEqual(first_sector, "Piantini")
 
+    def test_valuation_prefers_similar_size_and_bedrooms(self):
+        Listing.objects.create(
+            source=Listing.Source.DEMO,
+            source_listing_id="NACO-SIMILAR-001",
+            source_url="https://example.com/naco-similar-001",
+            sector="Naco",
+            price=Decimal("200000"),
+            area_m2=Decimal("100"),
+            bedrooms=2,
+        )
+
+        Listing.objects.create(
+            source=Listing.Source.DEMO,
+            source_listing_id="NACO-SIMILAR-002",
+            source_url="https://example.com/naco-similar-002",
+            sector="Naco",
+            price=Decimal("205000"),
+            area_m2=Decimal("100"),
+            bedrooms=2,
+        )
+
+        Listing.objects.create(
+            source=Listing.Source.DEMO,
+            source_listing_id="NACO-SIMILAR-003",
+            source_url="https://example.com/naco-similar-003",
+            sector="Naco",
+            price=Decimal("210000"),
+            area_m2=Decimal("105"),
+            bedrooms=2,
+        )
+
+        Listing.objects.create(
+            source=Listing.Source.DEMO,
+            source_listing_id="NACO-LARGE-001",
+            source_url="https://example.com/naco-large-001",
+            sector="Naco",
+            price=Decimal("1000000"),
+            area_m2=Decimal("400"),
+            bedrooms=4,
+        )
+
+        response = self.client.get(
+            reverse("market:valuation"),
+            {
+                "sector": "Naco",
+                "price": "200000",
+                "area_m2": "100",
+                "bedrooms": "2",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        result = response.context["result"]
+
+        self.assertEqual(result["comparables_count"], 4)
+
+        self.assertEqual(
+            result["comparison_note"],
+            "Comparación ajustada por tamaño y habitaciones.",
+        )
+
     

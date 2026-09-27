@@ -3,7 +3,7 @@ from decimal import Decimal,InvalidOperation
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
-from listings.models import Listing, ListingPriceSnapshot
+from listings.models import Listing, ListingPriceSnapshot, ImportRun
 
 class Command(BaseCommand):
     help = "Importar o actualiza propiedades desde un archivo csv."
@@ -280,6 +280,17 @@ class Command(BaseCommand):
                         f"{action_text} {deactivated_count} propiedades "
                         "que no aparecen en el CSV actual."
                     )
+                )
+
+            if not dry_run:
+                ImportRun.objects.create(
+                    sources=", ".join(sorted(imported_sources)),
+                    file_name= file_path.name,
+                    created_count = created_count,
+                    updated_count = updated_count,
+                    skipped_count = skipped_count,
+                    deactivated_count = deactivated_count,
+                    completed_at = timezone.now(),
                 )
 
 
