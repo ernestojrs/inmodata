@@ -30,6 +30,17 @@ class ValuationViewTests(TestCase):
             bathrooms=Decimal("2.5"),
         )
 
+        Listing.objects.create(
+            source=Listing.Source.DEMO,
+            source_listing_id="NACO-003",
+            source_url="https://example.com/naco-003",
+            sector="Naco",
+            price=Decimal("200000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+            bathrooms=Decimal("2.0"),
+        )
+
     def test_property_with_market_price_is_within_market_range(self):
         response = self.client.get(
             reverse("market:valuation"),
@@ -232,11 +243,35 @@ class ValuationViewTests(TestCase):
 
         result = response.context["result"]
 
-        self.assertEqual(result["comparables_count"], 4)
+        self.assertEqual(result["comparables_count"], 5)
 
         self.assertEqual(
             result["comparison_note"],
             "Comparación ajustada por tamaño y habitaciones.",
         )
+
+    def test_valuation_requires_three_comparables(self):
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="UNIQUE-PIANTINI-001",
+            source_url="https://example.com/unique-piantini-001",
+            sector="Piantini",
+            city="Santo Domingo",
+            price=Decimal("300000"),
+            area_m2=Decimal("100"),
+        )
+
+        response = self.client.get(
+            reverse("market:valuation"),
+            {
+                "sector": "Piantini",
+                "price": "310000",
+                "area_m2": "100",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Se necesitan al menos 3")
+        self.assertIsNone(response.context["result"])
 
     

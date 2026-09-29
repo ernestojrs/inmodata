@@ -11,7 +11,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from .forms import CsvImportForm
-from .services import get_comparable_listings
+from .services import get_comparable_listings, MINIMUM_COMPARABLES
+
 # Create your views here.
 
 def parse_optional_decimal(value):
@@ -150,6 +151,7 @@ def listing_detail(request, pk):
         target_area_m2=listing.area_m2,
         target_bedrooms=listing.bedrooms or None,
         currency=listing.currency,
+        exclude_listing_id=listing.pk,
     )
 
     comparable_prices_per_m2 = [
@@ -160,7 +162,7 @@ def listing_detail(request, pk):
 
     analysis = None
 
-    if listing.price_per_m2 is not None and comparable_prices_per_m2:
+    if listing.price_per_m2 is not None and len(comparable_prices_per_m2) >= MINIMUM_COMPARABLES:
         market_price_per_m2 = median(comparable_prices_per_m2)
 
         difference_percent = (

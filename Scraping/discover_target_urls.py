@@ -3,6 +3,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ElementTree
 import requests
+from sectors_santo_domingo import SUPERCASAS_SECTOR_SLUGS
 
 SITEMAP_URL = "https://www.supercasas.com/sitemap.xml"
 
@@ -93,11 +94,22 @@ def main():
 
     parser.add_argument(
         "--sectors",
-        default="el-millon",
+        default="",
         help=(
             "Sectores separados por coma usando el slug de la URL. "
             "Ejemplo: el-millon,naco,piantini"
         ),
+    )
+
+    parser.add_argument(
+        "--all-santo-domingo",
+        action="store_true",
+        help=(
+            (
+        "Incluye todos los sectores configurados "
+        "del Distrito Nacional."
+        )
+        )
     )
 
     parser.add_argument(
@@ -120,6 +132,9 @@ def main():
         for sector in arguments.sectors.split(",")
         if sector.strip()
     }
+
+    if arguments.all_santo_domingo:
+        sector_slugs.update(SUPERCASAS_SECTOR_SLUGS)
 
     if not sector_slugs:
         raise SystemExit(

@@ -1,7 +1,10 @@
 from decimal import Decimal
 from .models import Listing
 
-def get_comparable_listings(sector, target_area_m2, target_bedrooms=None,currency=Listing.Currency.USD):
+MINIMUM_COMPARABLES = 3
+
+def get_comparable_listings(sector, target_area_m2, target_bedrooms=None,currency=Listing.Currency.USD,
+                            exclude_listing_id=None):
     base_listings = Listing.objects.filter(
          is_active=True,
         property_type=Listing.PropertyType.APARTMENT,
@@ -13,6 +16,11 @@ def get_comparable_listings(sector, target_area_m2, target_bedrooms=None,currenc
         sector=sector,
     )
 
+    if exclude_listing_id is not None:
+        base_listings = base_listings.exclude(pk=exclude_listing_id)
+
+
+
     similar_size_listings = base_listings.filter(
         area_m2__gte=target_area_m2 * Decimal("0.70"),
         area_m2__lte=target_area_m2 * Decimal("1.30"),
@@ -23,13 +31,13 @@ def get_comparable_listings(sector, target_area_m2, target_bedrooms=None,currenc
             bedrooms=target_bedrooms,
         )
 
-        if similar_bedroom_listings.count() >= 3:
+        if similar_bedroom_listings.count() >= MINIMUM_COMPARABLES:
             return (
                 similar_bedroom_listings,
                 "Comparación ajustada por tamaño y habitaciones.",
             )
 
-    if similar_size_listings.count() >= 3:
+    if similar_size_listings.count() >= MINIMUM_COMPARABLES:
         return (
             similar_size_listings,
             "Comparación ajustada por tamaño.",

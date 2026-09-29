@@ -78,6 +78,24 @@ class HomePageTests(TestCase):
             "Explorar propiedades disponibles",
             status_code=404,
         )
+
+    def test_data_status_page_loads(self):
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="STATUS-001",
+            source_url="https://example.com/status-001",
+            sector="Naco",
+            city="Santo Domingo",
+            price=Decimal("200000"),
+            area_m2=Decimal("100"),
+        )
+
+        response = self.client.get(reverse("data_status"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Estado de los datos")
+        self.assertContains(response, "Naco")
+        self.assertContains(response, "1")
   
 
     

@@ -6,6 +6,10 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
+from sectors_santo_domingo import (
+    CANONICAL_SANTO_DOMINGO_SECTORS,
+    canonicalize_sector,
+)
 
 CSV_COLUMNS = [
     "source",
@@ -79,6 +83,13 @@ def extract_required_match(pattern, text, field_name):
 
     return match
 
+def extract_optional_match(pattern,text, field_name=None):
+    return re.search(
+        pattern,
+        text,
+        flags=re.IGNORECASE,
+    )
+
 
 def page_is_missing(html):
     missing_messages = [
@@ -92,14 +103,7 @@ def page_is_missing(html):
         for message in missing_messages
     )
 
-def normalize_sector(sector):
-     sector_aliases = {
-        "Ensanche Naco": "Naco",
-        "El Millon": "El Millón",
-        "Bella Vista Sur": "Bella Vista",
-    }
 
-     return  sector_aliases.get(sector.strip(), sector.strip())
 
 
 def extract_listing(url, html):
@@ -175,31 +179,26 @@ def extract_listing(url, html):
 
     if ">" not in location:
         raise ValueError(
-            "La localizacion no contiene uan estrcutura de sector"
+             "La localización no contiene una estructura de sector."
         )
 
-    sector = location.split(">")[-1].strip()
-    sector = normalize_sector(sector)
-
-    SECTOR_ALIASES = {
-    "Ensanche Naco": "Naco",
-    "Naco": "Naco",
-    "El Millon": "El Millón",
-    "El Millón": "El Millón",
-    "Bella Vista Sur": "Bella Vista",
-    }
-
-    sector = SECTOR_ALIASES.get(sector, sector)
-
-
-
-    if not sector:
-
-        raise ValueError("No se pudo determinar el sector")
-
-    if "santo domingo" not in location.lower():
+    if not any(
+        marker in location.lower()
+        for marker in (
+            "santo domingo",
+            "distrito nacional",
+        )
+    ):
         raise ValueError(
-            "la propiedad esta fuera de santo domingo"
+            "La propiedad está fuera del Distrito Nacional."
+        )
+
+    raw_sector = location.split(">")[-1].strip()
+    sector = canonicalize_sector(raw_sector)
+
+    if sector not in CANONICAL_SANTO_DOMINGO_SECTORS:
+        raise ValueError(
+             f"Sector no incluido en el catálogo: {raw_sector}"
         )
 
     construction_match = extract_required_match(
@@ -208,19 +207,19 @@ def extract_listing(url, html):
         "área de construcción",
     )
 
-    bedrooms_match = extract_required_match(
+    bedrooms_match = extract_optional_match(
         r"(\d+)\s+habitaci(?:ón|ones)",
         html,
         "habitaciones",
     )
 
-    bathrooms_match = extract_required_match(
+    bathrooms_match = extract_optional_match(
         r"([\d,.]+)\s+baño(?:s)?",
         html,
         "baños",
     )
 
-    parking_match = extract_required_match(
+    parking_match = extract_optional_match(
         r"(\d+)\s+parqueo(?:s)?",
         html,
         "parqueos",
@@ -248,11 +247,18 @@ def extract_listing(url, html):
         "area_m2": str(
             area_m2
         ),
-        "bedrooms": bedrooms_match.group(1),
-        "bathrooms": str(
-            decimal_from_text(bathrooms_match.group(1))
+        "bedrooms": (
+            bedrooms_match.group(1)
+            if bedrooms_match
+            else "0"
         ),
-        "parking_spaces": parking_match.group(1),
+        "bathrooms": (
+            str(
+            decimal_from_text(bathrooms_match.group(1))
+        )
+        if bathrooms_match else "0"),
+        "parking_spaces": (parking_match.group(1)
+                           if parking_match else "0"),
         "is_active": "true",
     }
 

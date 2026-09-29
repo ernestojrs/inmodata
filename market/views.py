@@ -4,7 +4,7 @@ from listings.models import Listing
 from decimal import Decimal, InvalidOperation
 from statistics import mean, median
 from django.http import Http404
-from listings.services import get_comparable_listings
+from listings.services import get_comparable_listings, MINIMUM_COMPARABLES
 
 # Create your views here.
 
@@ -104,8 +104,9 @@ def valuation(request):
                     comparable_prices_per_m2 = [
                         listing.price_per_m2 for listing in comparables if listing.price_per_m2 is not None
                     ]
-                    if not comparable_prices_per_m2:
-                        error = "No hay propiedades comparables en el sector seleccionado."
+                    if len(comparable_prices_per_m2)< MINIMUM_COMPARABLES:
+                        error = ("No hay suficientes propiedades comparables en el sector "
+                                "seleccionado. Se necesitan al menos 3 propiedades activas.")
                     else:
                         market_price_per_m2 = median(comparable_prices_per_m2)
                         entered_price_per_m2 = (
@@ -187,15 +188,16 @@ def opportunities(request):
             listing.sector,
             listing.area_m2,
             bedrooms,
+            exclude_listing_id=listing.pk,
         )
 
         comparable_prices_per_m2 = [
             comparable.price_per_m2
-            for comparable in comparables.exclude(pk=listing.pk)
+            for comparable in comparables
             if comparable.price_per_m2 is not None
         ]
 
-        if len(comparable_prices_per_m2) < 2:
+        if len(comparable_prices_per_m2) < MINIMUM_COMPARABLES:
             continue
 
         market_price_per_m2 = median(comparable_prices_per_m2)

@@ -27,5 +27,6 @@ urlpatterns = [
     path("privacidad/", core_views.privacy, name="privacy"),
     path("terminos/", core_views.terms, name="terms"),
     path("sitemap.xml", core_views.sitemap, name="sitemap"),
-path("robots.txt", core_views.robots_txt, name="robots_txt"),
+    path("robots.txt", core_views.robots_txt, name="robots_txt"),
+    path("datos/", core_views.data_status, name="data_status"),
 ]

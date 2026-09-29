@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.urls import reverse
-from listings.models import Listing
+from listings.models import Listing, ImportRun
+from django.conf import settings
+from django.db.models import Count, Max
+from django.utils import timezone
+from datetime import timedelta
 
 # Create your views here.
 def home(request):
@@ -15,6 +19,48 @@ def privacy(request):
 
 def terms(request):
     return render(request, "core/terms.html")
+
+def data_status(request):
+    freshness_limit = (
+        timezone.now() - timedelta(days=settings.LISTING_STALE_AFTER_DAYS)
+    )
+
+    listings = Listing.objects.filter(
+        is_active=True,
+        property_type=Listing.PropertyType.APARTMENT,
+        operation_type=Listing.OperationType.SALE,
+        currency=Listing.Currency.USD,
+        price__gt=0,
+        area_m2__gt=0,
+    )
+
+    sector_coverage = (
+        listings.values("sector")
+        .annotate(
+            listings_count = Count("id"),
+            latest_seen_at = Max("last_seen_at"),
+        ).order_by("-listings_count", "sector")
+    )
+
+    latest_import = ImportRun.objects.first()
+
+    return render(
+        request,
+         "core/data_status.html",
+        {
+            "listings_count": listings.count(),
+            "sectors_count": listings.values("sector").distinct().count(),
+            "fresh_listings_count": listings.filter(
+                last_seen_at__gte=freshness_limit
+            ).count(),
+            "stale_listings_count": listings.filter(
+                last_seen_at__lt=freshness_limit
+            ).count(),
+            "latest_import": latest_import,
+            "sector_coverage": sector_coverage,
+            "stale_after_days": settings.LISTING_STALE_AFTER_DAYS,
+        },
+    )
 
 def sitemap(request):
     listings = Listing.objects.filter(

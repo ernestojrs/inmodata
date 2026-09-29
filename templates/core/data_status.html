@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Estado de los datos | InmoData{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Transparencia de datos</p>
+
+<h1>Estado de los datos</h1>
+
+<p class="lead">
+    Consulta la cobertura actual de InmoData para apartamentos en venta
+    publicados en dólares estadounidenses.
+</p>
+
+<section class="stats-grid">
+    <article class="card stat-card">
+        <p class="eyebrow">Propiedades activas</p>
+        <p class="stat-number">{{ listings_count }}</p>
+    </article>
+
+    <article class="card stat-card">
+        <p class="eyebrow">Sectores con datos</p>
+        <p class="stat-number">{{ sectors_count }}</p>
+    </article>
+
+    <article class="card stat-card">
+        <p class="eyebrow">Datos recientes</p>
+        <p class="stat-number">{{ fresh_listings_count }}</p>
+        <p class="confidence-note">
+            Actualizados durante los últimos {{ stale_after_days }} días.
+        </p>
+    </article>
+</section>
+
+{% if latest_import %}
+    <section class="card">
+        <p class="eyebrow">Última importación</p>
+
+        <p>
+            Procesada el {{ latest_import.completed_at|date:"d/m/Y, H:i" }}.
+        </p>
+
+        <p class="confidence-note">
+            {{ latest_import.created_count }} creadas,
+            {{ latest_import.updated_count }} actualizadas,
+            {{ latest_import.skipped_count }} ignoradas y
+            {{ latest_import.deactivated_count }} desactivadas.
+        </p>
+    </section>
+{% endif %}
+
+<section class="card">
+    <p class="eyebrow">Cobertura por sector</p>
+
+    {% if sector_coverage %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>Propiedades activas</th>
+                    <th>Última verificación</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for sector in sector_coverage %}
+                    <tr>
+                        <td>{{ sector.sector }}</td>
+                        <td>{{ sector.listings_count }}</td>
+                        <td>
+                            {{ sector.latest_seen_at|date:"d/m/Y, H:i" }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="confidence-note">
+            Aún no hay propiedades disponibles para mostrar.
+        </p>
+    {% endif %}
+</section>
+
+<section class="card">
+    <p class="confidence-note">
+        InmoData usa anuncios publicados como referencia de mercado.
+        Los resultados son orientativos y no sustituyen una tasación,
+        inspección técnica o revisión legal.
+    </p>
+</section>
+{% endblock %}
