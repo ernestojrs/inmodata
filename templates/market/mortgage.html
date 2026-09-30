@@ -132,4 +132,9 @@
         </p>
     </section>
 {% endif %}
+{% if result and meta_pixel_id %}
+    <script>
+        fbq("trackCustom", "MortgageCalculationCompleted");
+    </script>
+{% endif %}
 {% endblock %}

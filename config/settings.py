@@ -35,6 +35,11 @@ DEBUG = os.environ.get(
     "True",
 ).lower() in ("true", "1", "yes")
 
+META_PIXEL_ID = os.environ.get(
+    "META_PIXEL_ID",
+    "",
+).strip()
+
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 if not SECRET_KEY:
@@ -144,6 +149,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "core.context_processors.tracking_settings",
             ],
         },
     },

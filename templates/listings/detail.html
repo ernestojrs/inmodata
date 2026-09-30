@@ -223,4 +223,10 @@
         Ver publicación original
     </a>
 </p>
+
+{% if meta_pixel_id %}
+    <script>
+        fbq("track", "ViewContent");
+    </script>
+{% endif %}
 {% endblock %}

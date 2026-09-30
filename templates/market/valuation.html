@@ -132,4 +132,10 @@
         </table>
     </section>
 {% endif %}
+
+{% if result and meta_pixel_id %}
+    <script>
+        fbq("trackCustom", "ValuationCompleted");
+    </script>
+{% endif %}
 {% endblock %}

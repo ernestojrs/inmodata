@@ -32,7 +32,7 @@ class ValuationViewTests(TestCase):
 
         Listing.objects.create(
             source=Listing.Source.DEMO,
-            source_listing_id="NACO-003",
+            source_listing_id="NACO-BASE-003",
             source_url="https://example.com/naco-003",
             sector="Naco",
             price=Decimal("200000.00"),

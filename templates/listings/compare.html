@@ -137,4 +137,9 @@
         </a>
     </p>
 {% endif %}
+{% if comparison and meta_pixel_id %}
+    <script>
+        fbq("trackCustom", "PropertyComparisonCompleted");
+    </script>
+{% endif %}
 {% endblock %}

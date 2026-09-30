@@ -96,6 +96,21 @@ class HomePageTests(TestCase):
         self.assertContains(response, "Estado de los datos")
         self.assertContains(response, "Naco")
         self.assertContains(response, "1")
+
+
+    @override_settings(META_PIXEL_ID="1234567890")
+    def test_meta_pixel_loads_when_configured(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "connect.facebook.net/en_US/fbevents.js",
+        )
+        self.assertContains(
+            response,
+            "fbq(\"init\", \"1234567890\")",
+        )
   
 
     
