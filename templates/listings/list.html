@@ -115,6 +115,7 @@
 </p>
 
 {% if page_obj.object_list %}
+    <div class="desktop-listings-table">
     <table>
         <thead>
             <tr>
@@ -155,6 +156,53 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+
+<section class="mobile-listing-cards">
+    {% for listing in page_obj %}
+        <article class="listing-mobile-card">
+            <div class="listing-mobile-top">
+                <p class="eyebrow">{{ listing.sector }}</p>
+
+                {% if listing.is_stale %}
+                    <span class="stale-badge">Actualización pendiente</span>
+                {% else %}
+                    <span class="fresh-badge">Actualizado</span>
+                {% endif %}
+            </div>
+
+            <p class="listing-mobile-price">
+                US$ {{ listing.price|floatformat:0 }}
+            </p>
+
+            <div class="listing-mobile-metrics">
+                <div>
+                    <span>Área</span>
+                    <strong>{{ listing.area_m2|floatformat:0 }} m²</strong>
+                </div>
+
+                <div>
+                    <span>Precio por m²</span>
+                    <strong>US$ {{ listing.calculated_price_per_m2|floatformat:0 }}</strong>
+                </div>
+
+                <div>
+                    <span>Habitaciones</span>
+                    <strong>{{ listing.bedrooms|default:"—" }}</strong>
+                </div>
+
+                <div>
+                    <span>Baños</span>
+                    <strong>{{ listing.bathrooms|default:"—" }}</strong>
+                </div>
+            </div>
+
+            <a class="button listing-mobile-button" href="{% url 'listings:detail' listing.pk %}">
+                Ver análisis
+            </a>
+        </article>
+    {% endfor %}
+</section>
 
     {% if page_obj.has_other_pages %}
         <nav class="pagination" aria-label="Paginación de propiedades">

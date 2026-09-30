@@ -20,6 +20,7 @@
 </section>
 
 {% if price_drops %}
+    <div class="price-drops-table">
     <table>
         <thead>
             <tr>
@@ -33,14 +34,24 @@
         <tbody>
             {% for drop in price_drops %}
                 <tr>
-                    <td>{{ drop.listing.sector }}</td>
-                    <td>US$ {{ drop.old_price|floatformat:0 }}</td>
-                    <td>US$ {{ drop.new_price|floatformat:0 }}</td>
-                    <td class="price-reduced">
+                    <td data-label="Sector">
+                        {{ drop.listing.sector }}
+                    </td>
+
+                    <td data-label="Precio anterior">
+                        US$ {{ drop.old_price|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Precio actual">
+                        US$ {{ drop.new_price|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Reducción" class="price-reduced">
                         -US$ {{ drop.amount|floatformat:0 }}
                         ({{ drop.percent }}%)
                     </td>
-                    <td>
+
+                    <td data-label="Acción">
                         <a
                             class="source-link"
                             href="{% url 'listings:detail' drop.listing.pk %}"
@@ -52,6 +63,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
 {% else %}
     <section class="card">
         <h2>Aún no hay bajas de precio registradas</h2>

@@ -81,6 +81,9 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Av. Anacaona",
     "Av. Cayetano Germosén",
     "Av. George Washington",
+    "Av. Independencia",
+    "Av. Máximo Gómez",
+
 
 )
 

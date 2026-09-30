@@ -20,6 +20,7 @@
 </section>
 
 {% if opportunities %}
+    <div class="opportunities-table">
     <table>
         <thead>
             <tr>
@@ -36,16 +37,35 @@
         <tbody>
             {% for opportunity in opportunities %}
                 <tr>
-                    <td>{{ opportunity.listing.sector }}</td>
-                    <td>US$ {{ opportunity.listing.price|floatformat:0 }}</td>
-                    <td>{{ opportunity.listing.area_m2|floatformat:0 }} m²</td>
-                    <td>US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}</td>
-                    <td>US$ {{ opportunity.market_price_per_m2|floatformat:0 }}</td>
-                    <td>{{ opportunity.comparables_count }}</td>
-                    <td class="below-market">
+                    <td data-label="Sector">
+                        {{ opportunity.listing.sector }}
+                    </td>
+
+                    <td data-label="Precio">
+                        US$ {{ opportunity.listing.price|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Área">
+                        {{ opportunity.listing.area_m2|floatformat:0 }} m²
+                    </td>
+
+                    <td data-label="Precio por m²">
+                        US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Mercado por m²">
+                        US$ {{ opportunity.market_price_per_m2|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Comparables">
+                        {{ opportunity.comparables_count }}
+                    </td>
+
+                    <td data-label="Diferencia" class="below-market">
                         {{ opportunity.difference_percent }}%
                     </td>
-                    <td>
+
+                    <td data-label="Acción">
                         <a
                             class="source-link"
                             href="{% url 'listings:detail' opportunity.listing.pk %}"
@@ -57,6 +77,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
 {% else %}
     <section class="card">
         <h2>Aún no hay oportunidades detectadas</h2>

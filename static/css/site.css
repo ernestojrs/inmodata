@@ -598,3 +598,1171 @@ th {
     color: var(--muted-text);
     white-space: pre-wrap;
 }
+
+/* --- Visual refresh: logo and responsive navigation --- */
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.9);
+    background: rgba(17, 24, 39, 0.92);
+    backdrop-filter: blur(14px);
+}
+
+.nav-container {
+    min-height: 76px;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+}
+
+.brand-mark {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.brand-wordmark {
+    color: var(--text);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.brand-wordmark::first-letter {
+    color: var(--primary);
+}
+
+.desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.desktop-nav a {
+    padding: 9px 10px;
+    border-radius: 8px;
+    color: var(--muted-text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.desktop-nav a:hover {
+    background: rgba(0, 184, 240, 0.1);
+    color: var(--primary);
+}
+
+.mobile-nav {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    .desktop-nav {
+        gap: 0;
+    }
+
+    .desktop-nav a {
+        padding: 8px 7px;
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .nav-container {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 68px;
+        padding: 10px 0;
+    }
+
+    .desktop-nav {
+        display: none;
+    }
+
+    .mobile-nav {
+        display: block;
+        position: relative;
+    }
+
+    .mobile-nav summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        cursor: pointer;
+        font-weight: 700;
+        list-style: none;
+    }
+
+    .mobile-nav summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .menu-icon {
+        color: var(--primary);
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+
+    .mobile-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        display: grid;
+        width: min(290px, calc(100vw - 32px));
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #1f2937;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+    }
+
+    .mobile-menu a {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted-text);
+        font-weight: 700;
+    }
+
+    .mobile-menu a:last-child {
+        border-bottom: 0;
+    }
+
+    .mobile-menu a:hover {
+        background: rgba(0, 184, 240, 0.1);
+        color: var(--primary);
+    }
+}
+
+@media (max-width: 640px) {
+    main {
+        min-height: calc(100vh - 130px);
+        padding: 32px 0 48px;
+    }
+
+    .hero {
+        padding: 26px 0 34px;
+    }
+
+    h1 {
+        font-size: clamp(2.25rem, 11vw, 3.4rem);
+    }
+
+    .lead {
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+
+    .button {
+        width: 100%;
+        padding: 15px 18px;
+        text-align: center;
+    }
+
+    .site-footer {
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+}
+
+/* Responsive logo and navigation */
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(17, 24, 39, 0.96);
+}
+
+.nav-container {
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+}
+
+.brand-mark {
+    display: block;
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    flex: 0 0 38px;
+}
+
+.brand-wordmark {
+    color: var(--text);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.desktop-nav a {
+    padding: 9px 10px;
+    border-radius: 8px;
+    color: var(--muted-text);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.desktop-nav a:hover {
+    background: rgba(0, 184, 240, 0.1);
+    color: var(--primary);
+}
+
+.mobile-nav {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .nav-container {
+        min-height: 68px;
+        padding: 10px 0;
+    }
+
+    .desktop-nav {
+        display: none !important;
+    }
+
+    .mobile-nav {
+        display: block !important;
+        position: relative;
+    }
+
+    .mobile-nav summary {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text);
+        cursor: pointer;
+        font-weight: 700;
+        list-style: none;
+    }
+
+    .mobile-nav summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .menu-icon {
+        color: var(--primary);
+        font-size: 1.2rem;
+    }
+
+    .mobile-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        display: grid;
+        width: min(290px, calc(100vw - 32px));
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
+    }
+
+    .mobile-menu a {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted-text);
+        font-weight: 700;
+    }
+
+    .mobile-menu a:last-child {
+        border-bottom: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .brand-mark {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+    }
+
+    .brand-wordmark {
+        font-size: 1.2rem;
+    }
+}
+
+
+/* --- Visual pass 2: cards, forms, data, and mobile layout --- */
+
+.hero {
+    max-width: 820px;
+    padding: 76px 0 56px;
+}
+
+.hero h1 {
+    max-width: 760px;
+}
+
+.card {
+    border-color: rgba(75, 85, 99, 0.8);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+}
+
+.card h2 {
+    margin-top: 0;
+}
+
+.feature-grid {
+    gap: 20px;
+}
+
+.feature-card {
+    min-height: 220px;
+    padding: 26px;
+    border-color: rgba(75, 85, 99, 0.85);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.feature-card:hover {
+    box-shadow: 0 18px 36px rgba(0, 184, 240, 0.12);
+}
+
+/* Data-status cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin: 28px 0;
+}
+
+.stat-card {
+    margin-top: 0;
+}
+
+.stat-number {
+    margin: 10px 0 0;
+    color: var(--text);
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Filters, valuation, comparison, and mortgage forms */
+.filter-form,
+.valuation-form,
+.calculator-form {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+    padding: 26px;
+    border-color: rgba(75, 85, 99, 0.9);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+}
+
+.filter-form input,
+.filter-form select,
+.valuation-form input,
+.valuation-form select,
+.calculator-form input,
+.calculator-form select {
+    border-color: #4b5563;
+    border-radius: 8px;
+}
+
+.filter-form input:focus,
+.filter-form select:focus,
+.valuation-form input:focus,
+.valuation-form select:focus,
+.calculator-form input:focus,
+.calculator-form select:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-color: var(--primary);
+}
+
+.filter-form button,
+.valuation-form button,
+.calculator-form button,
+.market-sort-form button,
+.upload-form button,
+.button {
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(0, 184, 240, 0.18);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.filter-form button:hover,
+.valuation-form button:hover,
+.calculator-form button:hover,
+.market-sort-form button:hover,
+.upload-form button:hover,
+.button:hover {
+    transform: translateY(-2px);
+}
+
+/* Tables */
+table {
+    overflow: hidden;
+    border: 1px solid rgba(75, 85, 99, 0.85);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+    background: rgba(0, 184, 240, 0.08);
+}
+
+tbody tr {
+    transition: background 0.18s ease;
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.035);
+}
+
+th,
+td {
+    padding: 15px 16px;
+}
+
+/* Mobile */
+@media (max-width: 850px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-grid {
+        gap: 14px;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero {
+        padding: 34px 0 28px;
+    }
+
+    .card,
+    .feature-card,
+    .filter-form,
+    .valuation-form,
+    .calculator-form {
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .feature-card {
+        min-height: auto;
+    }
+
+    .filter-form,
+    .valuation-form,
+    .calculator-form {
+        margin: 24px 0;
+        grid-template-columns: 1fr;
+    }
+
+    .filter-form input,
+    .filter-form select,
+    .filter-form button,
+    .valuation-form input,
+    .valuation-form select,
+    .valuation-form button,
+    .calculator-form input,
+    .calculator-form select,
+    .calculator-form button {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    th,
+    td {
+        padding: 12px;
+    }
+
+    .clear-filters {
+        display: inline-block;
+        margin: 10px 0 0;
+    }
+}
+
+/* Property cards for mobile */
+
+.mobile-listing-cards {
+    display: none;
+}
+
+.fresh-badge {
+    display: inline-block;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(74, 222, 128, 0.14);
+    color: #86efac;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+@media (max-width: 640px) {
+    .desktop-listings-table {
+        display: none;
+    }
+
+    .mobile-listing-cards {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+    }
+
+    .listing-mobile-card {
+        padding: 18px;
+        border: 1px solid rgba(75, 85, 99, 0.9);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
+    }
+
+    .listing-mobile-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .listing-mobile-top .eyebrow {
+        margin: 0;
+    }
+
+    .listing-mobile-price {
+        margin: 12px 0 16px;
+        font-size: 1.65rem;
+        font-weight: 800;
+    }
+
+    .listing-mobile-metrics {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .listing-mobile-metrics div {
+        display: grid;
+        gap: 4px;
+    }
+
+    .listing-mobile-metrics span {
+        color: var(--muted-text);
+        font-size: 0.78rem;
+    }
+
+    .listing-mobile-metrics strong {
+        color: var(--text);
+        font-size: 0.95rem;
+    }
+
+    .listing-mobile-button {
+        width: 100%;
+        margin-top: 18px;
+    }
+}
+
+@media (min-width: 641px) {
+    .desktop-listings-table {
+        display: block;
+    }
+}
+
+/* Home page conversion section */
+
+.hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+    align-items: center;
+    gap: 44px;
+}
+
+.hero-content {
+    max-width: 760px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.hero-actions .button {
+    margin-top: 0;
+}
+
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 14px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-weight: 700;
+}
+
+.secondary-button:hover {
+    border-color: var(--primary);
+    background: rgba(0, 184, 240, 0.1);
+    color: var(--primary);
+}
+
+.hero-note {
+    margin: 18px 0 0;
+    color: var(--muted-text);
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+.hero-tool-card {
+    padding: 28px;
+    border: 1px solid rgba(0, 184, 240, 0.35);
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(0, 184, 240, 0.12), transparent 60%),
+        var(--surface);
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.2);
+}
+
+.hero-tool-card h2 {
+    margin: 10px 0;
+    font-size: 1.65rem;
+}
+
+.hero-tool-card p:not(.eyebrow) {
+    color: var(--muted-text);
+    line-height: 1.65;
+}
+
+@media (max-width: 850px) {
+    .hero-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .hero-tool-card {
+        max-width: 620px;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .secondary-button {
+        width: 100%;
+    }
+}
+
+/* Mercado: sector cards on mobile */
+
+@media (max-width: 640px) {
+    .market-stats-table table,
+    .market-stats-table tbody,
+    .market-stats-table tr,
+    .market-stats-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .market-stats-table table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .market-stats-table thead {
+        display: none;
+    }
+
+    .market-stats-table tbody {
+        display: grid;
+        gap: 14px;
+    }
+
+    .market-stats-table tr {
+        overflow: hidden;
+        border: 1px solid rgba(75, 85, 99, 0.9);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
+    }
+
+    .market-stats-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: right;
+    }
+
+    .market-stats-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .market-stats-table td::before {
+        content: attr(data-label);
+        color: var(--muted-text);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .market-stats-table td:first-child {
+        padding: 16px;
+        background: rgba(0, 184, 240, 0.08);
+    }
+
+    .market-stats-table td:first-child::before {
+        display: none;
+    }
+}
+
+/* Valuation result */
+
+.valuation-result-card {
+    border-color: rgba(0, 184, 240, 0.36);
+    background:
+        linear-gradient(145deg, rgba(0, 184, 240, 0.08), transparent 45%),
+        var(--surface);
+}
+
+.valuation-result-card h2 {
+    margin-bottom: 14px;
+    font-size: clamp(1.65rem, 4vw, 2.2rem);
+}
+
+.valuation-summary-table {
+    margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+    .valuation-summary-table,
+    .valuation-summary-table tbody,
+    .valuation-summary-table tr,
+    .valuation-summary-table th,
+    .valuation-summary-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .valuation-summary-table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .valuation-summary-table tbody {
+        display: grid;
+        gap: 10px;
+    }
+
+    .valuation-summary-table tr {
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgba(17, 24, 39, 0.55);
+    }
+
+    .valuation-summary-table th {
+        padding: 0;
+        border: 0;
+        color: var(--muted-text);
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .valuation-summary-table td {
+        padding: 5px 0 0;
+        border: 0;
+        color: var(--text);
+        font-size: 1.1rem;
+        font-weight: 800;
+        text-align: left;
+    }
+}
+
+/* Property detail summary */
+
+.listing-summary-card {
+    border-color: rgba(0, 184, 240, 0.32);
+    background:
+        linear-gradient(145deg, rgba(0, 184, 240, 0.08), transparent 45%),
+        var(--surface);
+}
+
+.listing-summary-price {
+    margin: 10px 0 22px;
+    font-size: clamp(2rem, 5vw, 3.1rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+.listing-facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.listing-facts div {
+    display: grid;
+    gap: 5px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(17, 24, 39, 0.55);
+}
+
+.listing-facts span {
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.listing-facts strong {
+    color: var(--text);
+    font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+    .listing-facts {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .listing-facts div {
+        padding: 13px;
+    }
+
+    .listing-summary-price {
+        margin-bottom: 18px;
+    }
+}
+
+/* Comparison results on mobile */
+
+@media (max-width: 640px) {
+    .comparison-table,
+    .comparison-table thead,
+    .comparison-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .comparison-table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .comparison-table thead tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(0, 184, 240, 0.08);
+    }
+
+    .comparison-table thead th {
+        padding: 14px 10px;
+        border: 0;
+        color: var(--text);
+        font-size: 0.85rem;
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    .comparison-table thead th:first-child {
+        display: none;
+    }
+
+    .comparison-table tbody {
+        display: grid;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .comparison-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+    }
+
+    .comparison-table tbody th {
+        grid-column: 1 / -1;
+        padding: 11px 14px;
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.035);
+        color: var(--muted-text);
+        font-size: 0.8rem;
+        text-align: left;
+    }
+
+    .comparison-table tbody td {
+        padding: 14px 10px;
+        border: 0;
+        color: var(--text);
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .comparison-table tbody td + td {
+        border-left: 1px solid var(--border);
+    }
+}
+
+/* Mortgage-calculator result */
+
+.mortgage-result-card {
+    border-color: rgba(0, 184, 240, 0.36);
+    background:
+        linear-gradient(145deg, rgba(0, 102, 255, 0.14), transparent 48%),
+        var(--surface);
+}
+
+.mortgage-result-card h2 {
+    margin: 8px 0 24px;
+    color: var(--text);
+    font-size: clamp(1.8rem, 5vw, 2.7rem);
+    letter-spacing: -0.04em;
+}
+
+@media (max-width: 640px) {
+    .mortgage-summary-table,
+    .mortgage-summary-table tbody,
+    .mortgage-summary-table tr,
+    .mortgage-summary-table th,
+    .mortgage-summary-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .mortgage-summary-table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .mortgage-summary-table tbody {
+        display: grid;
+        gap: 10px;
+    }
+
+    .mortgage-summary-table tr {
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: rgba(17, 24, 39, 0.55);
+    }
+
+    .mortgage-summary-table th {
+        padding: 0;
+        border: 0;
+        color: var(--muted-text);
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .mortgage-summary-table td {
+        padding: 5px 0 0;
+        border: 0;
+        color: var(--text);
+        font-size: 1.1rem;
+        font-weight: 800;
+        text-align: left;
+    }
+}
+
+/* Opportunities cards on mobile */
+
+@media (max-width: 640px) {
+    .opportunities-table table,
+    .opportunities-table tbody,
+    .opportunities-table tr,
+    .opportunities-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .opportunities-table table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .opportunities-table thead {
+        display: none;
+    }
+
+    .opportunities-table tbody {
+        display: grid;
+        gap: 14px;
+    }
+
+    .opportunities-table tr {
+        overflow: hidden;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
+    }
+
+    .opportunities-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: right;
+    }
+
+    .opportunities-table td::before {
+        content: attr(data-label);
+        color: var(--muted-text);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .opportunities-table td:first-child {
+        padding: 16px;
+        background: rgba(74, 222, 128, 0.08);
+        color: var(--text);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .opportunities-table td:first-child::before {
+        display: none;
+    }
+
+    .opportunities-table td:last-child {
+        border-bottom: 0;
+    }
+}
+
+/* Price-drop cards on mobile */
+
+@media (max-width: 640px) {
+    .price-drops-table table,
+    .price-drops-table tbody,
+    .price-drops-table tr,
+    .price-drops-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .price-drops-table table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .price-drops-table thead {
+        display: none;
+    }
+
+    .price-drops-table tbody {
+        display: grid;
+        gap: 14px;
+    }
+
+    .price-drops-table tr {
+        overflow: hidden;
+        border: 1px solid rgba(74, 222, 128, 0.3);
+        border-radius: 14px;
+        background: var(--surface);
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
+    }
+
+    .price-drops-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: right;
+    }
+
+    .price-drops-table td::before {
+        content: attr(data-label);
+        color: var(--muted-text);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .price-drops-table td:first-child {
+        padding: 16px;
+        background: rgba(74, 222, 128, 0.08);
+        color: var(--text);
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .price-drops-table td:first-child::before {
+        display: none;
+    }
+
+    .price-drops-table td:last-child {
+        border-bottom: 0;
+    }
+}

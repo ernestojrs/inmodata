@@ -27,35 +27,46 @@
     </p>
 {% endif %}
 
-<section class="card">
-    <table>
-        <tbody>
-            <tr>
-                <th>Precio</th>
-                <td>{{ listing.currency }} {{ listing.price|floatformat:0 }}</td>
-            </tr>
-            <tr>
-                <th>Área</th>
-                <td>{{ listing.area_m2|floatformat:0 }} m²</td>
-            </tr>
-            <tr>
-                <th>Precio por m²</th>
-                <td>{{ listing.currency }} {{ listing.price_per_m2|floatformat:0 }}</td>
-            </tr>
-            <tr>
-                <th>Habitaciones</th>
-                <td>{{ listing.bedrooms|default:"No disponible" }}</td>
-            </tr>
-            <tr>
-                <th>Baños</th>
-                <td>{{ listing.bathrooms|default:"No disponible" }}</td>
-            </tr>
-            <tr>
-                <th>Parqueos</th>
-                <td>{{ listing.parking_spaces|default:"No disponible" }}</td>
-            </tr>
-        </tbody>
-    </table>
+<section class="card listing-summary-card">
+    <p class="eyebrow">Resumen de la propiedad</p>
+
+    <p class="listing-summary-price">
+        {{ listing.currency }} {{ listing.price|floatformat:0 }}
+    </p>
+
+    <div class="listing-facts">
+        <div>
+            <span>Área</span>
+            <strong>{{ listing.area_m2|floatformat:0 }} m²</strong>
+        </div>
+
+        <div>
+            <span>Precio por m²</span>
+            <strong>
+                {{ listing.currency }} {{ listing.price_per_m2|floatformat:0 }}
+            </strong>
+        </div>
+
+        <div>
+            <span>Habitaciones</span>
+            <strong>{{ listing.bedrooms|default:"No disponible" }}</strong>
+        </div>
+
+        <div>
+            <span>Baños</span>
+            <strong>{{ listing.bathrooms|default:"No disponible" }}</strong>
+        </div>
+
+        <div>
+            <span>Parqueos</span>
+            <strong>{{ listing.parking_spaces|default:"No disponible" }}</strong>
+        </div>
+
+        <div>
+            <span>Sector</span>
+            <strong>{{ listing.sector }}</strong>
+        </div>
+    </div>
 </section>
 
 {% if analysis %}

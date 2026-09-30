@@ -3,19 +3,46 @@
 {% block title %}InmoData | Inteligencia inmobiliaria{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <p class="eyebrow">República Dominicana</p>
+<section class="hero hero-layout">
+    <div class="hero-content">
+        <p class="eyebrow">Datos inmobiliarios · República Dominicana</p>
 
-    <h1>Entiende el precio real de una propiedad.</h1>
+        <h1>Entiende el precio real de una propiedad.</h1>
 
-    <p class="lead">
-        InmoData ayuda a compradores a explorar precios, comparar
-        propiedades y tomar decisiones con datos inmobiliarios.
-    </p>
+        <p class="lead">
+            Compara propiedades, analiza precios por metro cuadrado
+            y toma decisiones inmobiliarias con datos del mercado.
+        </p>
 
-    <a class="button" href="{% url 'listings:list' %}">
-        Explorar propiedades
-    </a>
+        <div class="hero-actions">
+            <a class="button" href="{% url 'market:valuation' %}">
+                Valorar una propiedad
+            </a>
+
+            <a class="secondary-button" href="{% url 'listings:list' %}">
+                Explorar propiedades
+            </a>
+        </div>
+
+        <p class="hero-note">
+            Información orientativa basada en anuncios inmobiliarios disponibles.
+        </p>
+    </div>
+
+    <aside class="hero-tool-card">
+        <p class="eyebrow">Herramienta principal</p>
+
+        <h2>¿El precio es justo?</h2>
+
+        <p>
+            Ingresa el precio y el área de una propiedad para compararla
+            con apartamentos disponibles en el mismo sector.
+        </p>
+
+        <a class="source-link" href="{% url 'market:valuation' %}">
+            Evaluar precio →
+        </a>
+    </aside>
 </section>
 
 <section class="feature-grid">

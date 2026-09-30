@@ -62,6 +62,7 @@
 
 
 {% if sector_stats %}
+    <div class="market-stats-table">
     <table>
         <thead>
             <tr>
@@ -75,7 +76,7 @@
         <tbody>
             {% for stat in sector_stats %}
                 <tr>
-                    <td>
+                    <td data-label="Sector">
                         <a
                             class="source-link"
                             href="{% url 'market:sector_detail' stat.sector %}"
@@ -83,10 +84,20 @@
                             {{ stat.sector }}
                         </a>
                     </td>
-                    <td>{{ stat.listings_count }}</td>
-                    <td>US$ {{ stat.average_price|floatformat:0 }}</td>
-                    <td>US$ {{ stat.average_price_per_m2|floatformat:0 }}</td>
-                    <td>
+
+                    <td data-label="Propiedades">
+                        {{ stat.listings_count }}
+                    </td>
+
+                    <td data-label="Precio promedio">
+                        US$ {{ stat.average_price|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Precio por m²">
+                        US$ {{ stat.average_price_per_m2|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Confianza">
                         {% if stat.listings_count < 5 %}
                             Muestra pequeña
                         {% else %}
@@ -97,6 +108,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
 {% else %}
     <section class="card">
         <h2>Aún no hay datos suficientes</h2>

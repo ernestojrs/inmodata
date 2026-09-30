@@ -88,12 +88,12 @@
 {% endif %}
 
 {% if result %}
-    <section class="card">
+    <section class="card mortgage-result-card">
         <p class="eyebrow">Estimación</p>
 
         <h2>Cuota mensual: {{ result.currency }} {{ result.monthly_payment|floatformat:0 }}</h2>
 
-        <table>
+        <table class="mortgage-summary-table">
             <tbody>
                 <tr>
                     <th>Precio de propiedad</th>

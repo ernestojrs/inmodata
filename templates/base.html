@@ -58,19 +58,45 @@
     {% endif %}
     <header class="site-header">
         <div class="container nav-container">
-            <a class="brand" href="/">InmoData</a>
+            <a class="brand" href="{% url 'home' %}" aria-label="InmoData, inicio">
+                <img
+                    class="brand-mark"
+                    src="{% static 'images/inmodata-icon.svg' %}"
+                    alt=""
+                >
+                <span class="brand-wordmark">InmoData</span>
+            </a>
 
-            <nav class="nav-links">
-                <a href="/">Inicio</a>
-                <a href="/mercado/">Mercado</a>
-                <a href="/propiedades/">Propiedades</a>
-                <a href="/mercado/valorar/">Valorar</a>
-                <a href="/mercado/oportunidades/">Oportunidades</a>
-                <a href="/propiedades/comparar/">Comparar</a>
-                <a href="/mercado/financiamiento/">Financiamiento</a>
-                <a href="/mercado/bajas-de-precio/">Bajas de precio</a>
+            <nav class="desktop-nav" aria-label="Navegación principal">
+                <a href="{% url 'home' %}">Inicio</a>
+                <a href="{% url 'market:overview' %}">Mercado</a>
+                <a href="{% url 'listings:list' %}">Propiedades</a>
+                <a href="{% url 'market:valuation' %}">Valorar</a>
+                <a href="{% url 'market:opportunities' %}">Oportunidades</a>
+                <a href="{% url 'listings:compare' %}">Comparar</a>
+                <a href="{% url 'market:mortgage' %}">Financiamiento</a>
+                <a href="{% url 'market:price_drops' %}">Bajas de precio</a>
                 <a href="{% url 'methodology' %}">Metodología</a>
             </nav>
+
+            <details class="mobile-nav">
+                <summary aria-label="Abrir menú de navegación">
+                    <span>Menú</span>
+                    <span class="menu-icon" aria-hidden="true">☰</span>
+                </summary>
+
+                <nav class="mobile-menu" aria-label="Navegación móvil">
+                    <a href="{% url 'home' %}">Inicio</a>
+                    <a href="{% url 'market:overview' %}">Mercado</a>
+                    <a href="{% url 'listings:list' %}">Propiedades</a>
+                    <a href="{% url 'market:valuation' %}">Valorar una propiedad</a>
+                    <a href="{% url 'market:opportunities' %}">Oportunidades</a>
+                    <a href="{% url 'listings:compare' %}">Comparar propiedades</a>
+                    <a href="{% url 'market:mortgage' %}">Financiamiento</a>
+                    <a href="{% url 'market:price_drops' %}">Bajas de precio</a>
+                    <a href="{% url 'methodology' %}">Metodología</a>
+                </nav>
+            </details>
         </div>
     </header>
 
