@@ -55,6 +55,21 @@
     </form>
 </section>
 
+<section class="card">
+    <p class="eyebrow">Respaldo de datos</p>
+
+    <h2>Exportar propiedades actuales</h2>
+
+    <p>
+        Descarga una copia CSV de todas las propiedades antes de realizar
+        una importación importante.
+    </p>
+
+    <a class="source-link" href="{% url 'listings:export_csv' %}">
+        Descargar exportación CSV
+    </a>
+</section>
+
 {% if result %}
     <section class="card">
         <p class="eyebrow">Resultado de importación</p>

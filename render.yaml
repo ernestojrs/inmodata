@@ -34,7 +34,10 @@ services:
         value: "False"
 
       - key: DJANGO_SECURE_SSL_REDIRECT
-        value: "False"
+        value: "True"
+
+      - key: DJANGO_SECURE_HSTS_SECONDS
+        value: "3600"
 
       - key: DJANGO_SESSION_COOKIE_SECURE
         value: "True"

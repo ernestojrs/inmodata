@@ -516,4 +516,61 @@ class CsvUploadViewTests(TestCase):
             ).exists()
         )
 
+class CsvExportViewTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        user_model = get_user_model()
+
+        self.staff_user = user_model.objects.create_superuser(
+            username="export-admin",
+            email="export@example.com",
+            password="secure-password",
+        )
+
+        self.normal_user = user_model.objects.create_user(
+            username="normal-user",
+            password="secure-password",
+        )
+
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="EXPORT-001",
+            source_url="https://example.com/export-001",
+            sector="Naco",
+            city="Santo Domingo",
+            price=Decimal("200000.00"),
+            area_m2=Decimal("100.00"),
+        )
+
+    def test_staff_user_can_download_listings_csv(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(
+            reverse("listings:export_csv"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response["Content-Type"].startswith("text/csv"),
+        )
+        self.assertIn(
+            "attachment;",
+            response["Content-Disposition"],
+        )
+
+        csv_text = response.content.decode("utf-8-sig")
+
+        self.assertIn("source_listing_id", csv_text)
+        self.assertIn("EXPORT-001", csv_text)
+
+    def test_non_staff_user_cannot_download_listings_csv(self):
+        self.client.force_login(self.normal_user)
+
+        response = self.client.get(
+            reverse("listings:export_csv"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+
         

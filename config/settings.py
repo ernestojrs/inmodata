@@ -120,6 +120,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
 
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SECURE_HSTS_SECONDS = int(
+    os.environ.get(
+        "DJANGO_SECURE_HSTS_SECONDS",
+        "0",
+    )
+)
 
 
 # Application definition

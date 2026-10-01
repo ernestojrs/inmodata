@@ -12,6 +12,9 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from .forms import CsvImportForm
 from .services import get_comparable_listings, MINIMUM_COMPARABLES
+from django.http import HttpResponse
+from django.utils import timezone
+import csv
 
 # Create your views here.
 
@@ -403,4 +406,71 @@ def import_listings_upload(request):
         }
     )
 
-                
+@staff_member_required
+def export_listings_csv(request):
+    timestamp = timezone.localtime().strftime("%Y%m%d_%H%M%S")
+
+    response = HttpResponse(
+        content_type="text/csv; charset=utf-8",
+    )
+
+    response["Content-Disposition"] = (
+        f"attachment; filename=inmodata_listings_{timestamp}.csv"
+
+    )
+
+    response.write("\ufeff")
+
+    writer = csv.writer(response)
+
+    writer.writerow(
+        [
+            "source",
+            "source_listing_id",
+            "source_url",
+            "property_type",
+            "operation_type",
+            "sector",
+            "city",
+            "price",
+            "currency",
+            "area_m2",
+            "bedrooms",
+            "bathrooms",
+            "parking_spaces",
+            "is_active",
+            "first_seen_at",
+            "last_seen_at",
+        ]
+    )
+
+    listings = Listing.objects.all().order_by(
+        "source",
+        "source_listing_id",
+    )
+
+    for listing in listings:
+        writer.writerow(
+            [
+                listing.source,
+                listing.source_listing_id,
+                listing.source_url,
+                listing.property_type,
+                listing.operation_type,
+                listing.sector,
+                listing.city,
+                listing.price,
+                listing.currency,
+                listing.area_m2,
+                listing.bedrooms,
+                listing.bathrooms,
+                listing.parking_spaces,
+                listing.is_active,
+                listing.first_seen_at.isoformat(),
+                listing.last_seen_at.isoformat(),
+            ]
+        )     
+
+        return response       
+
+    
