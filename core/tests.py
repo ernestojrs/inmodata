@@ -120,6 +120,20 @@ class HomePageTests(TestCase):
             "fbq(\"init\", \"1234567890\")",
         )
 
+    @override_settings(GOOGLE_ANALYTICS_ID="G-TEST123456")
+    def test_google_analytics_loads_when_configured(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "googletagmanager.com/gtag/js?id=G-TEST123456",
+        )
+        self.assertContains(
+            response,
+            'gtag("config",',
+        )
+
     
   
 

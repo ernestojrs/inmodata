@@ -40,6 +40,11 @@ META_PIXEL_ID = os.environ.get(
     "",
 ).strip()
 
+GOOGLE_ANALYTICS_ID = os.environ.get(
+    "GOOGLE_ANALYTICS_ID",
+    "",
+).strip()
+
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 if not SECRET_KEY:
