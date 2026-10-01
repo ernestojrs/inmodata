@@ -20,6 +20,40 @@
         <loc>{{ base_url }}{% url 'terms' %}</loc>
     </url>
 
+        <url>
+        <loc>{{ base_url }}{% url 'market:overview' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'market:valuation' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'market:opportunities' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'market:price_drops' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'market:mortgage' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'listings:compare' %}</loc>
+    </url>
+
+    <url>
+        <loc>{{ base_url }}{% url 'data_status' %}</loc>
+    </url>
+
+    {% for sector in sectors %}
+        <url>
+            <loc>{{ base_url }}{% url 'market:sector_detail' sector %}</loc>
+        </url>
+    {% endfor %}
+
     {% for listing in listings %}
         <url>
             <loc>{{ base_url }}{% url 'listings:detail' listing.pk %}</loc>

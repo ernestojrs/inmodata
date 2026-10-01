@@ -2057,3 +2057,15 @@ td {
         grid-column: auto;
     }
 }
+
+/* Active navigation link */
+
+.desktop-nav a.is-active {
+    background: rgba(0, 184, 240, 0.14);
+    color: var(--primary);
+}
+
+.mobile-menu a.is-active {
+    background: rgba(0, 184, 240, 0.12);
+    color: var(--primary);
+}

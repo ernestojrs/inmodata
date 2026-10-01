@@ -70,22 +70,37 @@ def sitemap(request):
         "updated_at",
     )
 
-    base_url = request.build_absolute_uri("/").rstrip("/")
+    market_listings = Listing.objects.filter(
+         is_active=True,
+        property_type=Listing.PropertyType.APARTMENT,
+        operation_type=Listing.OperationType.SALE,
+        currency=Listing.Currency.USD,
+        price__gt=0,
+        area_m2__gt=0,
+    )
 
+    sectors = (
+          market_listings
+        .values_list("sector", flat=True)
+        .distinct()
+        .order_by("sector")
+    )
+
+    
     return render(
         request,
         "core/sitemap.xml",
         {
-            "base_url": base_url,
+            "base_url": settings.SITE_URL,
             "listings": listings,
+            "sectors": sectors,
         },
         content_type= "application/xml",
     )
 
 def robots_txt(request):
-    sitemap_url = request.build_absolute_uri(
-        reverse("sitemap")
-    )
+    sitemap_url = f"{settings.SITE_URL}{reverse('sitemap')}"
+    
 
     return HttpResponse(
         f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n",

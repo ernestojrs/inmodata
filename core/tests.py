@@ -59,6 +59,14 @@ class HomePageTests(TestCase):
             f"/propiedades/{listing.pk}/",
         )
 
+        self.assertContains(
+            response,
+            reverse(
+                "market:sector_detail",
+                args=[listing.sector],
+            ),
+        )
+
 
     def test_robots_txt_includes_sitemap(self):
         response = self.client.get(reverse("robots_txt"))
@@ -111,6 +119,8 @@ class HomePageTests(TestCase):
             response,
             "fbq(\"init\", \"1234567890\")",
         )
+
+    
   
 
     

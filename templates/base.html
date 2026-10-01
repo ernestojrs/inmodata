@@ -10,6 +10,8 @@
         content="{% block meta_description %}InmoData ayuda a comparar precios, propiedades y datos inmobiliarios en República Dominicana.{% endblock %}"
     >
     <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ canonical_url }}">
+        <meta property="og:url" content="{{ canonical_url }}">
 
     <meta
         property="og:title"
@@ -94,15 +96,68 @@
             </a>
 
             <nav class="desktop-nav" aria-label="Navegación principal">
-                <a href="{% url 'home' %}">Inicio</a>
-                <a href="{% url 'market:overview' %}">Mercado</a>
-                <a href="{% url 'listings:list' %}">Propiedades</a>
-                <a href="{% url 'market:valuation' %}">Valorar</a>
-                <a href="{% url 'market:opportunities' %}">Oportunidades</a>
-                <a href="{% url 'listings:compare' %}">Comparar</a>
-                <a href="{% url 'market:mortgage' %}">Financiamiento</a>
-                <a href="{% url 'market:price_drops' %}">Bajas de precio</a>
-                <a href="{% url 'methodology' %}">Metodología</a>
+                <a
+                    class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}"
+                    href="{% url 'home' %}"
+                >
+                    Inicio
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'overview' %}is-active{% endif %}"
+                    href="{% url 'market:overview' %}"
+                >
+                    Mercado
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'list' %}is-active{% endif %}"
+                    href="{% url 'listings:list' %}"
+                >
+                    Propiedades
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'valuation' %}is-active{% endif %}"
+                    href="{% url 'market:valuation' %}"
+                >
+                    Valorar
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'opportunities' %}is-active{% endif %}"
+                    href="{% url 'market:opportunities' %}"
+                >
+                    Oportunidades
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'compare' %}is-active{% endif %}"
+                    href="{% url 'listings:compare' %}"
+                >
+                    Comparar
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'mortgage' %}is-active{% endif %}"
+                    href="{% url 'market:mortgage' %}"
+                >
+                    Financiamiento
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'price_drops' %}is-active{% endif %}"
+                    href="{% url 'market:price_drops' %}"
+                >
+                    Bajas de precio
+                </a>
+
+                <a
+                    class="{% if request.resolver_match.url_name == 'methodology' %}is-active{% endif %}"
+                    href="{% url 'methodology' %}"
+                >
+                    Metodología
+                </a>
             </nav>
 
             <details class="mobile-nav">
@@ -112,15 +167,68 @@
                 </summary>
 
                 <nav class="mobile-menu" aria-label="Navegación móvil">
-                    <a href="{% url 'home' %}">Inicio</a>
-                    <a href="{% url 'market:overview' %}">Mercado</a>
-                    <a href="{% url 'listings:list' %}">Propiedades</a>
-                    <a href="{% url 'market:valuation' %}">Valorar una propiedad</a>
-                    <a href="{% url 'market:opportunities' %}">Oportunidades</a>
-                    <a href="{% url 'listings:compare' %}">Comparar propiedades</a>
-                    <a href="{% url 'market:mortgage' %}">Financiamiento</a>
-                    <a href="{% url 'market:price_drops' %}">Bajas de precio</a>
-                    <a href="{% url 'methodology' %}">Metodología</a>
+                    <a
+                        class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}"
+                        href="{% url 'home' %}"
+                    >
+                        Inicio
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'overview' %}is-active{% endif %}"
+                        href="{% url 'market:overview' %}"
+                    >
+                        Mercado
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'list' %}is-active{% endif %}"
+                        href="{% url 'listings:list' %}"
+                    >
+                        Propiedades
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'valuation' %}is-active{% endif %}"
+                        href="{% url 'market:valuation' %}"
+                    >
+                        Valorar una propiedad
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'opportunities' %}is-active{% endif %}"
+                        href="{% url 'market:opportunities' %}"
+                    >
+                        Oportunidades
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'compare' %}is-active{% endif %}"
+                        href="{% url 'listings:compare' %}"
+                    >
+                        Comparar propiedades
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'mortgage' %}is-active{% endif %}"
+                        href="{% url 'market:mortgage' %}"
+                    >
+                        Financiamiento
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'price_drops' %}is-active{% endif %}"
+                        href="{% url 'market:price_drops' %}"
+                    >
+                        Bajas de precio
+                    </a>
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'methodology' %}is-active{% endif %}"
+                        href="{% url 'methodology' %}"
+                    >
+                        Metodología
+                    </a>
                 </nav>
             </details>
         </div>
