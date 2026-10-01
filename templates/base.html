@@ -5,6 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}InmoData{% endblock %}</title>
+    <meta
+        name="description"
+        content="{% block meta_description %}InmoData ayuda a comparar precios, propiedades y datos inmobiliarios en República Dominicana.{% endblock %}"
+    >
+    <meta name="robots" content="index, follow">
+
+    <meta
+        property="og:title"
+        content="{% block og_title %}InmoData | Inteligencia inmobiliaria{% endblock %}"
+    >
+    <meta
+        property="og:description"
+        content="{% block og_description %}Compara precios, propiedades y datos inmobiliarios en República Dominicana.{% endblock %}"
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="InmoData">
     {% if meta_pixel_id %}
         <script>
             !function(f,b,e,v,n,t,s)
@@ -43,6 +59,16 @@
         </script>
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
+    <link
+        rel="icon"
+        type="image/svg+xml"
+        href="{% static 'images/inmodata-icon.svg' %}"
+    >
+    <link
+        rel="apple-touch-icon"
+        href="{% static 'images/inmodata-icon.png' %}"
+    >
+<meta name="theme-color" content="#111827">
 </head>
 <body>
     {% if meta_pixel_id %}
@@ -105,13 +131,48 @@
     </main>
 
     <footer class="site-footer">
-        <div class="container">
-            <p>
-                InmoData · Datos inmobiliarios para República Dominicana ·
-                <a class="source-link" href="{% url 'privacy' %}">Privacidad</a> ·
-                <a class="source-link" href="{% url 'terms' %}">Términos</a>
-                · <a class="source-link" href="{% url 'data_status' %}">Estado de datos</a>
-            </p>
+        <div class="container footer-grid">
+            <section class="footer-brand">
+                <a class="footer-logo" href="{% url 'home' %}">
+                    <img
+                        class="footer-mark"
+                        src="{% static 'images/inmodata-icon.svg' %}"
+                        alt=""
+                    >
+                    <span>InmoData</span>
+                </a>
+
+                <p>
+                    Datos inmobiliarios para ayudar a tomar decisiones más claras
+                    en República Dominicana.
+                </p>
+            </section>
+
+            <section class="footer-column">
+                <h2>Herramientas</h2>
+                <a href="{% url 'market:valuation' %}">Valorar propiedad</a>
+                <a href="{% url 'listings:list' %}">Explorar propiedades</a>
+                <a href="{% url 'market:overview' %}">Mercado por sector</a>
+                <a href="{% url 'market:mortgage' %}">Financiamiento</a>
+            </section>
+
+            <section class="footer-column">
+                <h2>Información</h2>
+                <a href="{% url 'market:opportunities' %}">Oportunidades</a>
+                <a href="{% url 'market:price_drops' %}">Bajas de precio</a>
+                <a href="{% url 'data_status' %}">Estado de datos</a>
+                <a href="{% url 'methodology' %}">Metodología</a>
+            </section>
+
+            <section class="footer-column">
+                <h2>Legal</h2>
+                <a href="{% url 'privacy' %}">Privacidad</a>
+                <a href="{% url 'terms' %}">Términos de uso</a>
+            </section>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© {% now "Y" %} InmoData · Información inmobiliaria orientativa.</p>
         </div>
     </footer>
 </body>

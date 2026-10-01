@@ -1766,3 +1766,294 @@ td {
         border-bottom: 0;
     }
 }
+
+/* Sector report metrics */
+
+.sector-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin: 28px 0 42px;
+}
+
+.sector-metric-card {
+    display: grid;
+    gap: 8px;
+    min-height: 132px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.sector-metric-card span {
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.sector-metric-card strong {
+    align-self: end;
+    color: var(--text);
+    font-size: 1.25rem;
+    letter-spacing: -0.03em;
+}
+
+.sector-opportunity-card {
+    border-color: rgba(74, 222, 128, 0.35);
+    background:
+        linear-gradient(145deg, rgba(74, 222, 128, 0.1), transparent 55%),
+        var(--surface);
+}
+
+.sector-opportunity-card strong {
+    color: #86efac;
+}
+
+@media (max-width: 1000px) {
+    .sector-metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .sector-metrics-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 24px 0 34px;
+    }
+
+    .sector-metric-card {
+        min-height: 118px;
+        padding: 15px;
+    }
+
+    .sector-metric-card:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Recent listings in sector reports */
+
+@media (max-width: 640px) {
+    .sector-listings-table table,
+    .sector-listings-table tbody,
+    .sector-listings-table tr,
+    .sector-listings-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .sector-listings-table table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .sector-listings-table thead {
+        display: none;
+    }
+
+    .sector-listings-table tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    .sector-listings-table tr {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+    }
+
+    .sector-listings-table td {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border);
+        text-align: right;
+    }
+
+    .sector-listings-table td::before {
+        content: attr(data-label);
+        color: var(--muted-text);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .sector-listings-table td:last-child {
+        border-bottom: 0;
+    }
+}
+
+/* Data coverage cards on mobile */
+
+@media (max-width: 640px) {
+    .data-coverage-table table,
+    .data-coverage-table tbody,
+    .data-coverage-table tr,
+    .data-coverage-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .data-coverage-table table {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        white-space: normal;
+    }
+
+    .data-coverage-table thead {
+        display: none;
+    }
+
+    .data-coverage-table tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    .data-coverage-table tr {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(17, 24, 39, 0.55);
+    }
+
+    .data-coverage-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--border);
+        text-align: right;
+    }
+
+    .data-coverage-table td::before {
+        content: attr(data-label);
+        color: var(--muted-text);
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .data-coverage-table td:first-child {
+        padding: 15px;
+        background: rgba(0, 184, 240, 0.08);
+        color: var(--text);
+        font-size: 1.02rem;
+        font-weight: 800;
+    }
+
+    .data-coverage-table td:first-child::before {
+        display: none;
+    }
+
+    .data-coverage-table td:last-child {
+        border-bottom: 0;
+    }
+}
+
+/* Footer */
+
+.site-footer {
+    margin-top: 56px;
+    padding: 48px 0 0;
+    border-top: 1px solid var(--border);
+    background: rgba(15, 23, 42, 0.72);
+    color: var(--muted-text);
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.6fr) repeat(3, 1fr);
+    gap: 32px;
+    padding-bottom: 38px;
+}
+
+.footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--text);
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.footer-mark {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.footer-brand p {
+    max-width: 330px;
+    margin: 14px 0 0;
+    line-height: 1.65;
+}
+
+.footer-column {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+}
+
+.footer-column h2 {
+    margin: 0 0 4px;
+    color: var(--text);
+    font-size: 0.88rem;
+}
+
+.footer-column a {
+    color: var(--muted-text);
+    font-size: 0.9rem;
+}
+
+.footer-column a:hover {
+    color: var(--primary);
+}
+
+.footer-bottom {
+    padding: 18px 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+}
+
+.footer-bottom p {
+    margin: 0;
+}
+
+@media (max-width: 850px) {
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .site-footer {
+        margin-top: 38px;
+        padding-top: 34px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 26px;
+        padding-bottom: 30px;
+    }
+
+    .footer-brand {
+        grid-column: auto;
+    }
+}

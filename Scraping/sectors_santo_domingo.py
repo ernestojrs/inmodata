@@ -83,6 +83,8 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Av. George Washington",
     "Av. Independencia",
     "Av. Máximo Gómez",
+    "Av. Monumental",
+    "Av. Núñez de Cáceres",
 
 
 )

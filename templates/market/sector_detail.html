@@ -27,62 +27,78 @@
     {% endif %}
 </section>
 
-<table>
-    <tbody>
-        <tr>
-            <th>Precio promedio</th>
-            <td>US$ {{ average_price|floatformat:0 }}</td>
-        </tr>
-        <tr>
-            <th>Precio mediano por m²</th>
-            <td>US$ {{ median_price_per_m2|floatformat:0 }}</td>
-        </tr>
-        <tr>
-            <th>Precio más bajo por m²</th>
-            <td>US$ {{ lowest_price_per_m2|floatformat:0 }}</td>
-        </tr>
-        <tr>
-            <th>Precio más alto por m²</th>
-            <td>US$ {{ highest_price_per_m2|floatformat:0 }}</td>
-        </tr>
-        <tr>
-            <th>Oportunidades detectadas</th>
-            <td>{{ opportunities_count }}</td>
-        </tr>
-    </tbody>
-</table>
+<section class="sector-metrics-grid">
+    <article class="sector-metric-card">
+        <span>Precio promedio</span>
+        <strong>US$ {{ average_price|floatformat:0 }}</strong>
+    </article>
+
+    <article class="sector-metric-card">
+        <span>Precio mediano por m²</span>
+        <strong>US$ {{ median_price_per_m2|floatformat:0 }}</strong>
+    </article>
+
+    <article class="sector-metric-card">
+        <span>Menor precio por m²</span>
+        <strong>US$ {{ lowest_price_per_m2|floatformat:0 }}</strong>
+    </article>
+
+    <article class="sector-metric-card">
+        <span>Mayor precio por m²</span>
+        <strong>US$ {{ highest_price_per_m2|floatformat:0 }}</strong>
+    </article>
+
+    <article class="sector-metric-card sector-opportunity-card">
+        <span>Oportunidades detectadas</span>
+        <strong>{{ opportunities_count }}</strong>
+    </article>
+</section>
 
 <h2>Propiedades recientes</h2>
 
-<table>
-    <thead>
-        <tr>
-            <th>Precio</th>
-            <th>Área</th>
-            <th>Precio por m²</th>
-            <th>Habitaciones</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for listing in listings %}
+<div class="sector-listings-table">
+    <table>
+        <thead>
             <tr>
-                <td>US$ {{ listing.price|floatformat:0 }}</td>
-                <td>{{ listing.area_m2|floatformat:0 }} m²</td>
-                <td>US$ {{ listing.price_per_m2|floatformat:0 }}</td>
-                <td>{{ listing.bedrooms|default:"No disponible" }}</td>
-                <td>
-                    <a
-                        class="source-link"
-                        href="{% url 'listings:detail' listing.pk %}"
-                    >
-                        Ver análisis
-                    </a>
-                </td>
+                <th>Precio</th>
+                <th>Área</th>
+                <th>Precio por m²</th>
+                <th>Habitaciones</th>
+                <th></th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for listing in listings %}
+                <tr>
+                    <td data-label="Precio">
+                        US$ {{ listing.price|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Área">
+                        {{ listing.area_m2|floatformat:0 }} m²
+                    </td>
+
+                    <td data-label="Precio por m²">
+                        US$ {{ listing.price_per_m2|floatformat:0 }}
+                    </td>
+
+                    <td data-label="Habitaciones">
+                        {{ listing.bedrooms|default:"No disponible" }}
+                    </td>
+
+                    <td data-label="Acción">
+                        <a
+                            class="source-link"
+                            href="{% url 'listings:detail' listing.pk %}"
+                        >
+                            Ver análisis
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 <p>
     <a class="source-link" href="{% url 'listings:list' %}?sector={{ sector }}">

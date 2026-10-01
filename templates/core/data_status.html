@@ -53,27 +53,35 @@
     <p class="eyebrow">Cobertura por sector</p>
 
     {% if sector_coverage %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Sector</th>
-                    <th>Propiedades activas</th>
-                    <th>Última verificación</th>
-                </tr>
-            </thead>
+        <div class="data-coverage-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sector</th>
+                            <th>Propiedades activas</th>
+                            <th>Última verificación</th>
+                        </tr>
+                    </thead>
 
-            <tbody>
-                {% for sector in sector_coverage %}
-                    <tr>
-                        <td>{{ sector.sector }}</td>
-                        <td>{{ sector.listings_count }}</td>
-                        <td>
-                            {{ sector.latest_seen_at|date:"d/m/Y, H:i" }}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    <tbody>
+                        {% for sector in sector_coverage %}
+                            <tr>
+                                <td data-label="Sector">
+                                    {{ sector.sector }}
+                                </td>
+
+                                <td data-label="Propiedades activas">
+                                    {{ sector.listings_count }}
+                                </td>
+
+                                <td data-label="Última verificación">
+                                    {{ sector.latest_seen_at|date:"d/m/Y, H:i" }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+        </div>
     {% else %}
         <p class="confidence-note">
             Aún no hay propiedades disponibles para mostrar.
