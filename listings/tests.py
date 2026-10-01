@@ -249,6 +249,10 @@ class ListingFilterTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["listing_1"], first_listing)
         self.assertEqual(response.context["listing_2"], second_listing)
+        self.assertContains(
+            response,
+            'gtag("event", "property_comparison_completed");',
+        )
 
     def test_comparison_identifies_the_listing_with_lower_price_per_m2(self):
         first_listing = Listing.objects.get(

@@ -143,9 +143,15 @@ Estima tu cuota mensual, inicial, intereses y monto financiado para una propieda
         </p>
     </section>
 {% endif %}
-{% if result and meta_pixel_id %}
+{% if result %}
     <script>
-        fbq("trackCustom", "MortgageCalculationCompleted");
+        if (typeof fbq === "function") {
+            fbq("trackCustom", "MortgageCalculationCompleted");
+        }
+
+        if (typeof gtag === "function") {
+            gtag("event", "mortgage_calculation_completed");
+        }
     </script>
 {% endif %}
 {% endblock %}

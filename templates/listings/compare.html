@@ -137,9 +137,15 @@
         </a>
     </p>
 {% endif %}
-{% if comparison and meta_pixel_id %}
+{% if comparison %}
     <script>
-        fbq("trackCustom", "PropertyComparisonCompleted");
+        if (typeof fbq === "function") {
+            fbq("trackCustom", "PropertyComparisonCompleted");
+        }
+
+        if (typeof gtag === "function") {
+            gtag("event", "property_comparison_completed");
+        }
     </script>
 {% endif %}
 {% endblock %}

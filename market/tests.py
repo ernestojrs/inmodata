@@ -125,6 +125,11 @@ class ValuationViewTests(TestCase):
             Decimal("0"),
         )
 
+        self.assertContains(
+            response,
+            'gtag("event", "mortgage_calculation_completed");',
+        )
+
     def test_price_drops_page_shows_reduced_listing(self):
         listing = Listing.objects.create(
             source=Listing.Source.DEMO,

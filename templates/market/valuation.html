@@ -144,9 +144,15 @@ Ingresa el precio y el área de una propiedad para compararla con datos del merc
     </section>
 {% endif %}
 
-{% if result and meta_pixel_id %}
+{% if result %}
     <script>
-        fbq("trackCustom", "ValuationCompleted");
+        if (typeof fbq === "function") {
+            fbq("trackCustom", "ValuationCompleted");
+        }
+
+        if (typeof gtag === "function") {
+            gtag("event", "valuation_completed");
+        }
     </script>
 {% endif %}
 {% endblock %}
