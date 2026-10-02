@@ -161,7 +161,7 @@ class ListingDetailPriceChangeTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Compartir análisis por WhatsApp")
+        self.assertContains(response, "Compartir por WhatsApp")
         self.assertContains(response, "https://wa.me/")
 
 class ListingFilterTests(TestCase):

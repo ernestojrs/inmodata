@@ -70,44 +70,64 @@
 </section>
 
 {% if analysis %}
-    <section class="card">
-        <p class="eyebrow">Resultado de mercado</p>
+    <section class="market-verdict-card {{ analysis.label_class }}">
+        <div class="market-verdict-header">
+            <div>
+                <p class="eyebrow">Resultado de mercado</p>
 
-        <h2 class="{{ analysis.label_class }}">
-            {{ analysis.label }}
-        </h2>
+                <h2>{{ analysis.label }}</h2>
+            </div>
 
-        <p>
+            <span class="market-verdict-badge">
+                {{ analysis.difference_percent }}%
+            </span>
+        </div>
+
+        <p class="market-verdict-description">
             El análisis usa <strong>{{ analysis.comparables_count }}</strong>
             propiedades comparables en {{ listing.sector }}.
         </p>
+
+        <div class="market-verdict-metrics">
+            <div>
+                <span>Precio publicado por m²</span>
+                <strong>
+                    {{ listing.currency }}
+                    {{ listing.price_per_m2|floatformat:0 }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Referencia de mercado por m²</span>
+                <strong>
+                    {{ listing.currency }}
+                    {{ analysis.market_price_per_m2|floatformat:0 }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Diferencia frente al mercado</span>
+                <strong>{{ analysis.difference_percent }}%</strong>
+            </div>
+        </div>
 
         <p class="confidence-note">
             {{ analysis.comparison_note }}
         </p>
 
         <p class="confidence-note">
-            Última actualización:
-            <strong>{{ analysis.last_updated|date:"d/m/Y H:i"|default:"No disponible" }}</strong>
+            Datos comparables actualizados:
+            <strong>
+                {{ analysis.last_updated|date:"d/m/Y H:i"|default:"No disponible" }}
+            </strong>
         </p>
 
         {% if analysis.sample_is_small %}
             <p class="sample-warning">
-                Esta muestra es pequeña. El resultado es orientativo, no una tasación.
+                Esta muestra es pequeña. El resultado es orientativo,
+                no una tasación.
             </p>
         {% endif %}
-
-        <p>
-            Precio de mercado por m²:
-            <strong>
-                {{ listing.currency }} {{ analysis.market_price_per_m2|floatformat:0 }}
-            </strong>
-        </p>
-
-        <p>
-            Diferencia frente al mercado:
-            <strong>{{ analysis.difference_percent }}%</strong>
-        </p>
     </section>
 {% else %}
     <section class="card">
@@ -207,33 +227,29 @@
     </section>
 {% endif %}
 
-<p>
-    <a class="source-link" href="{% url 'listings:list' %}">
+<section class="listing-actions">
+    <a class="secondary-button" href="{% url 'listings:list' %}">
         ← Volver a propiedades
     </a>
-</p>
 
-<p>
     <a
-        class="share-link"
+        class="button listing-share-button"
         href="https://wa.me/?text={{ share_text|urlencode }}"
         target="_blank"
         rel="noopener noreferrer"
     >
-        Compartir análisis por WhatsApp
+        Compartir por WhatsApp
     </a>
-</p>
 
-<p>
     <a
         class="source-link"
         href="{{ listing.source_url }}"
         target="_blank"
         rel="noopener noreferrer"
     >
-        Ver publicación original
+        Ver publicación original ↗
     </a>
-</p>
+</section>
 
 {% if meta_pixel_id %}
     <script>
