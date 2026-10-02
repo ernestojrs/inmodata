@@ -100,7 +100,7 @@ def sitemap(request):
 
 def robots_txt(request):
     sitemap_url = f"{settings.SITE_URL}{reverse('sitemap')}"
-    
+
 
     return HttpResponse(
         f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n",
@@ -112,4 +112,11 @@ def custom_404(request, exception):
         request,
         "404.html",
         status=404,
+    )
+
+def custom_500(request):
+    return render(
+        request,
+        "500.html",
+        status=500,
     )

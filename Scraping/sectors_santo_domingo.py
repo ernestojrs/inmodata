@@ -85,6 +85,8 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Av. Máximo Gómez",
     "Av. Monumental",
     "Av. Núñez de Cáceres",
+    "Av. Puerta de Hierro",
+    "Av. República de Colombia",
 
 
 )

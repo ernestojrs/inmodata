@@ -2,6 +2,8 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from decimal import Decimal
 from listings.models import Listing
+from django.test import TestCase, override_settings, RequestFactory
+from .views import custom_500
 
 # Create your tests here.
 
@@ -132,6 +134,23 @@ class HomePageTests(TestCase):
         self.assertContains(
             response,
             'gtag("config",',
+        )
+
+    def test_custom_500_page_loads(self):
+        request = RequestFactory().get("/error-temporal/")
+
+        response = custom_500(request)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertContains(
+            response,
+            "Algo no salió como esperábamos.",
+            status_code=500,
+        )
+        self.assertContains(
+            response,
+            "Volver al inicio",
+            status_code=500,
         )
 
     

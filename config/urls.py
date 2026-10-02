@@ -29,4 +29,8 @@ urlpatterns = [
     path("sitemap.xml", core_views.sitemap, name="sitemap"),
     path("robots.txt", core_views.robots_txt, name="robots_txt"),
     path("datos/", core_views.data_status, name="data_status"),
+    
 ]
+
+handler404 = core_views.custom_404
+handler500 = core_views.custom_500

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Error temporal | InmoData{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <p class="eyebrow">Error temporal</p>
+
+    <h1>Algo no salió como esperábamos.</h1>
+
+    <p class="lead">
+        Estamos teniendo un problema temporal. Intenta nuevamente en unos
+        minutos o vuelve al inicio para seguir explorando el mercado.
+    </p>
+
+    <p>
+        <a class="button" href="{% url 'home' %}">
+            Volver al inicio
+        </a>
+    </p>
+
+    <p>
+        <a class="source-link" href="{% url 'listings:list' %}">
+            Explorar propiedades disponibles
+        </a>
+    </p>
+</section>
+{% endblock %}
