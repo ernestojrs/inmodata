@@ -8,4 +8,9 @@ urlpatterns = [
     path("<int:pk>/", views.listing_detail, name="detail"),
     path("importar/", views.import_listings_upload, name="import_upload"),
     path("exportar/", views.export_listings_csv, name="export_csv"),
+    path(
+    "respaldo/",
+    views.export_listings_backup,
+    name="export_backup",
+    ),
 ]

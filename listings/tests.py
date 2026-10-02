@@ -10,6 +10,8 @@ from datetime import timedelta
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .services import get_comparable_listings
 from django.utils import timezone
+import csv
+import json
 
 # Create your tests here.
 
@@ -573,4 +575,77 @@ class CsvExportViewTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
+    def test_csv_export_contains_all_listings(self):
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="EXPORT-002",
+            source_url="https://example.com/export-002",
+            sector="Piantini",
+            city="Santo Domingo",
+            price=Decimal("350000.00"),
+            area_m2=Decimal("150.00"),
+        )
+
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(
+            reverse("listings:export_csv"),
+        )
+
+        csv_text = response.content.decode("utf-8-sig")
+        rows = list(csv.DictReader(StringIO(csv_text)))
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(
+            {row["source_listing_id"] for row in rows},
+            {"EXPORT-001", "EXPORT-002"},
+        )
+
+    def test_staff_user_can_download_full_listings_backup(self):
+        listing = Listing.objects.get(
+            source_listing_id="EXPORT-001",
+        )
+
+        ListingPriceSnapshot.objects.create(
+            listing=listing,
+            price=Decimal("200000.00"),
+            currency=Listing.Currency.USD,
+        )
+
+        ImportRun.objects.create(
+            sources="manual",
+            file_name="backup-test.csv",
+            created_count=1,
+        )
+
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(
+            reverse("listings:export_backup"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response["Content-Type"].startswith("application/json"),
+        )
+        self.assertIn(
+            "attachment;",
+            response["Content-Disposition"],
+        )
+
+        backup_data = json.loads(
+            response.content.decode("utf-8"),
+        )
+
+        exported_models = {
+            item["model"]
+            for item in backup_data
+        }
+
+        self.assertIn("listings.listing", exported_models)
+        self.assertIn(
+            "listings.listingpricesnapshot",
+            exported_models,
+        )
+        self.assertIn("listings.importrun", exported_models)
         

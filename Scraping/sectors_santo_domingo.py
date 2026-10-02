@@ -140,6 +140,8 @@ def canonicalize_sector(value):
 SUPERCASAS_SLUG_OVERRIDES = {
     "Naco": "ensanche-naco",
     "Viejo Arroyo Hondo": "arroyo-hondo-viejo",
+     "Av. Puerta de Hierro": "av--puerta-de-hierro",
+    "Av. República de Colombia": "av--republica-de-colombia",
 }
 
 

@@ -68,6 +68,14 @@
     <a class="source-link" href="{% url 'listings:export_csv' %}">
         Descargar exportación CSV
     </a>
+
+    <a class="source-link" href="{% url 'listings:export_backup' %}">
+    Descargar respaldo completo (JSON)
+    </a>
+
+    <p class="confidence-note">
+        Incluye propiedades, historial de precios y registros de importación.
+    </p>
 </section>
 
 {% if result %}

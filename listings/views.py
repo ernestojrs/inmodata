@@ -471,6 +471,27 @@ def export_listings_csv(request):
             ]
         )     
 
-        return response       
+    return response    
+
+@staff_member_required
+def export_listings_backup(request):
+    timestamp = timezone.localtime().strftime("%Y%m%d_%H%M%S")
+
+    response = HttpResponse(
+        content_type="application/json: charset=utf-8",
+    )   
+
+    response["Content-Disposition"] = (
+        f"attachment; filename=inmodata_listings_backup_{timestamp}.json"
+    )
+
+    call_command(
+        "dumpdata",
+        "listings",
+        indent = 2,
+        stdout = response,
+    )
+
+    return response
 
     
