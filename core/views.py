@@ -1,11 +1,13 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from listings.models import Listing, ImportRun
 from django.conf import settings
 from django.db.models import Count, Max
 from django.utils import timezone
 from datetime import timedelta
+from django.db import DatabaseError, connection
+from django.views.decorators.http import require_GET
 
 # Create your views here.
 def home(request):
@@ -120,3 +122,21 @@ def custom_500(request):
         "500.html",
         status=500,
     )
+
+@require_GET
+def health_check(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    except DatabaseError:
+        return JsonResponse({
+            "status": "error",
+            "message": "Database connection failed.",
+        }, status=500,)
+
+    return JsonResponse({
+        "status": "ok"
+        
+    },status=200,)
+        

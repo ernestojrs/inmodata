@@ -29,6 +29,7 @@ urlpatterns = [
     path("sitemap.xml", core_views.sitemap, name="sitemap"),
     path("robots.txt", core_views.robots_txt, name="robots_txt"),
     path("datos/", core_views.data_status, name="data_status"),
+    path("health/", core_views.health_check, name="health_check"),
     
 ]
 

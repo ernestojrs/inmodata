@@ -14,15 +14,17 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
 {% endblock %}
 
 {% block content %}
-<p class="eyebrow">Apartamentos en venta</p>
+<section class="property-search-hero">
+    <div class="property-search-hero-content">
+        <p class="eyebrow">Apartamentos en venta</p>
 
-<h1>Explorar propiedades</h1>
+        <h1>Explorar propiedades</h1>
 
-<p class="lead">
-    Compara precio, tamaño y precio por metro cuadrado.
-</p>
+        <p class="lead">
+            Compara precio, tamaño y precio por metro cuadrado.
+        </p>
 
-<form method="get" class="filter-form">
+        <form method="get" class="filter-form property-search-form">
 
     <div>
         <label for="q">Buscar sector o ciudad</label>
@@ -110,6 +112,8 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
 
     <button type="submit">Filtrar</button>
 </form>
+    </div>
+</section>
 
 <p class="results-count">
     {% if results_count == 1 %}
