@@ -2453,3 +2453,796 @@ td {
         text-align: center;
     }
 }
+
+/* Market overview dashboard */
+
+.market-overview-hero {
+    padding: 18px 0 22px;
+}
+
+.market-overview-hero h1 {
+    max-width: 800px;
+}
+
+.market-dashboard-sort {
+    width: fit-content;
+    margin: 30px 0 0;
+    padding: 16px;
+    border: 1px solid rgba(0, 184, 240, 0.24);
+    border-radius: 12px;
+    background: rgba(31, 41, 55, 0.62);
+}
+
+.market-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 26px 0 18px;
+}
+
+.market-kpi-card {
+    display: grid;
+    gap: 9px;
+    min-height: 170px;
+    padding: 22px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(0, 102, 255, 0.12), transparent 60%),
+        var(--surface);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+}
+
+.market-kpi-card span {
+    color: var(--muted-text);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.market-kpi-card strong {
+    color: var(--text);
+    font-size: clamp(2rem, 4vw, 3rem);
+    letter-spacing: -0.05em;
+}
+
+.market-kpi-card p {
+    margin: 0;
+    color: var(--muted-text);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.market-kpi-card-wide {
+    border-color: rgba(0, 184, 240, 0.35);
+    background:
+        linear-gradient(145deg, rgba(0, 184, 240, 0.16), transparent 60%),
+        var(--surface);
+}
+
+.market-kpi-card-wide strong {
+    color: #7dd3fc;
+    font-size: clamp(1.45rem, 3vw, 2.2rem);
+}
+
+.market-confidence-note {
+    margin: 0 0 28px;
+    color: var(--muted-text);
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.market-stats-table {
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 16px;
+    background: rgba(31, 41, 55, 0.68);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.market-stats-table table {
+    margin: 0;
+    background: transparent;
+}
+
+.market-stats-table th {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+    background: rgba(0, 102, 255, 0.08);
+    color: #7dd3fc;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.market-stats-table td {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+}
+
+.market-stats-table tbody tr {
+    transition: background 160ms ease;
+}
+
+.market-stats-table tbody tr:hover {
+    background: rgba(0, 184, 240, 0.055);
+}
+
+@media (max-width: 800px) {
+    .market-kpi-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .market-kpi-card-wide {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .market-dashboard-sort {
+        width: 100%;
+    }
+
+    .market-kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .market-kpi-card-wide {
+        grid-column: auto;
+    }
+
+    .market-kpi-card {
+        min-height: 145px;
+        padding: 18px;
+    }
+}
+
+/* Valuation page */
+
+.valuation-hero {
+    max-width: 900px;
+    padding: 28px 0 8px;
+}
+
+.valuation-hero h1 {
+    max-width: 720px;
+}
+
+.valuation-hero-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 34px;
+    padding: 26px;
+    border: 1px solid rgba(0, 184, 240, 0.3);
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(0, 102, 255, 0.13), transparent 60%),
+        var(--surface);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.valuation-hero-form button {
+    grid-column: 1 / -1;
+    width: min(300px, 100%);
+    min-height: 52px;
+    background: linear-gradient(135deg, #10c9ef, #008ff0);
+}
+
+.valuation-result-card {
+    margin-top: 34px;
+    padding: clamp(22px, 4vw, 34px);
+    border-radius: 16px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.16);
+}
+
+.valuation-result-card.below-market {
+    border-color: rgba(74, 222, 128, 0.45);
+    background:
+        linear-gradient(135deg, rgba(74, 222, 128, 0.16), transparent 52%),
+        var(--surface);
+}
+
+.valuation-result-card.above-market {
+    border-color: rgba(251, 146, 60, 0.48);
+    background:
+        linear-gradient(135deg, rgba(251, 146, 60, 0.16), transparent 52%),
+        var(--surface);
+}
+
+.valuation-result-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 22px;
+}
+
+.valuation-result-header .eyebrow {
+    margin: 0 0 8px;
+}
+
+.valuation-result-header h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    letter-spacing: -0.05em;
+}
+
+.valuation-result-badge {
+    flex: 0 0 auto;
+    padding: 10px 13px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    color: var(--primary);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.below-market .valuation-result-badge {
+    color: #86efac;
+}
+
+.above-market .valuation-result-badge {
+    color: #fdba74;
+}
+
+.valuation-result-description {
+    margin: 22px 0;
+    color: var(--muted-text);
+    line-height: 1.65;
+}
+
+.valuation-result-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 24px 0;
+}
+
+.valuation-result-metrics div {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.46);
+}
+
+.valuation-result-metrics span {
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.valuation-result-metrics strong {
+    color: var(--text);
+    font-size: 1.15rem;
+    letter-spacing: -0.025em;
+}
+
+@media (max-width: 640px) {
+    .valuation-hero {
+        padding-top: 12px;
+    }
+
+    .valuation-hero-form {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .valuation-hero-form button {
+        width: 100%;
+    }
+
+    .valuation-result-header {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .valuation-result-metrics {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* Financing calculator */
+
+.finance-hero {
+    max-width: 980px;
+    padding: 28px 0 8px;
+}
+
+.finance-hero h1 {
+    max-width: 800px;
+}
+
+.finance-calculator-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 34px;
+    padding: 26px;
+    border: 1px solid rgba(0, 184, 240, 0.3);
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(0, 102, 255, 0.13), transparent 60%),
+        var(--surface);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.finance-calculator-form button {
+    grid-column: 1 / -1;
+    width: min(300px, 100%);
+    min-height: 52px;
+    background: linear-gradient(135deg, #10c9ef, #008ff0);
+}
+
+.finance-result-card {
+    margin-top: 34px;
+    padding: clamp(22px, 4vw, 34px);
+    border-radius: 16px;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.16);
+}
+
+.finance-result-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.finance-result-header .eyebrow {
+    margin: 0 0 8px;
+}
+
+.finance-result-header h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(1.65rem, 4vw, 2.5rem);
+    letter-spacing: -0.045em;
+}
+
+.finance-result-header > span {
+    padding: 10px 13px;
+    border: 1px solid rgba(0, 184, 240, 0.48);
+    border-radius: 999px;
+    color: #7dd3fc;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+.finance-monthly-payment {
+    margin: 24px 0 8px;
+    color: #7dd3fc;
+    font-size: clamp(2.6rem, 7vw, 4.6rem);
+    font-weight: 800;
+    letter-spacing: -0.065em;
+}
+
+.finance-result-description {
+    margin: 0;
+    color: var(--muted-text);
+    line-height: 1.65;
+}
+
+.finance-result-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 28px 0;
+}
+
+.finance-result-metrics div {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.46);
+}
+
+.finance-result-metrics span {
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.finance-result-metrics strong {
+    color: var(--text);
+    font-size: 1.05rem;
+    letter-spacing: -0.025em;
+}
+
+@media (max-width: 850px) {
+    .finance-calculator-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .finance-result-metrics {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .finance-hero {
+        padding-top: 12px;
+    }
+
+    .finance-calculator-form {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .finance-calculator-form button {
+        width: 100%;
+    }
+
+    .finance-result-header {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .finance-result-metrics {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* Opportunities page */
+
+.opportunities-hero {
+    max-width: 850px;
+    padding: 28px 0 8px;
+}
+
+.opportunities-callout {
+    display: grid;
+    grid-template-columns: minmax(190px, 0.65fr) 1.35fr;
+    gap: 28px;
+    align-items: center;
+    margin: 30px 0;
+    padding: 24px;
+    border: 1px solid rgba(74, 222, 128, 0.34);
+    border-radius: 16px;
+    background:
+        linear-gradient(135deg, rgba(74, 222, 128, 0.14), transparent 60%),
+        var(--surface);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+}
+
+.opportunities-callout div {
+    display: grid;
+    gap: 5px;
+}
+
+.opportunities-callout span {
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.opportunities-callout strong {
+    color: #86efac;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    letter-spacing: -0.06em;
+}
+
+.opportunities-callout p {
+    margin: 0;
+    color: var(--muted-text);
+    line-height: 1.65;
+}
+
+.opportunities-premium-table {
+    overflow: hidden;
+    border: 1px solid rgba(74, 222, 128, 0.27);
+    border-radius: 16px;
+    background: rgba(31, 41, 55, 0.68);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.opportunities-premium-table table {
+    margin: 0;
+    background: transparent;
+}
+
+.opportunities-premium-table th {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+    background: rgba(74, 222, 128, 0.08);
+    color: #86efac;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.opportunities-premium-table td {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+}
+
+.opportunities-premium-table tbody tr {
+    transition: background 160ms ease;
+}
+
+.opportunities-premium-table tbody tr:hover {
+    background: rgba(74, 222, 128, 0.055);
+}
+
+.opportunities-premium-table .below-market {
+    color: #86efac;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .opportunities-hero {
+        padding-top: 12px;
+    }
+
+    .opportunities-callout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .opportunities-premium-table {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+}
+
+/* Price drops page */
+
+.price-drops-hero {
+    max-width: 850px;
+    padding: 28px 0 8px;
+}
+
+.price-drops-callout {
+    display: grid;
+    grid-template-columns: minmax(190px, 0.65fr) 1.35fr;
+    gap: 28px;
+    align-items: center;
+    margin: 30px 0;
+    padding: 24px;
+    border: 1px solid rgba(74, 222, 128, 0.34);
+    border-radius: 16px;
+    background:
+        linear-gradient(135deg, rgba(74, 222, 128, 0.14), transparent 60%),
+        var(--surface);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+}
+
+.price-drops-callout div {
+    display: grid;
+    gap: 5px;
+}
+
+.price-drops-callout span {
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.price-drops-callout strong {
+    color: #86efac;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    letter-spacing: -0.06em;
+}
+
+.price-drops-callout p {
+    margin: 0;
+    color: var(--muted-text);
+    line-height: 1.65;
+}
+
+.price-drops-premium-table {
+    overflow: hidden;
+    border: 1px solid rgba(74, 222, 128, 0.27);
+    border-radius: 16px;
+    background: rgba(31, 41, 55, 0.68);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.price-drops-premium-table table {
+    margin: 0;
+    background: transparent;
+}
+
+.price-drops-premium-table th {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+    background: rgba(74, 222, 128, 0.08);
+    color: #86efac;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.price-drops-premium-table td {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+}
+
+.price-drops-premium-table tbody tr {
+    transition: background 160ms ease;
+}
+
+.price-drops-premium-table tbody tr:hover {
+    background: rgba(74, 222, 128, 0.055);
+}
+
+.price-drops-premium-table .price-reduced {
+    color: #86efac;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
+    .price-drops-hero {
+        padding-top: 12px;
+    }
+
+    .price-drops-callout {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .price-drops-premium-table {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+}
+
+/* Property comparison */
+
+.comparison-hero {
+    max-width: 980px;
+    padding: 28px 0 8px;
+}
+
+.comparison-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 34px;
+    padding: 26px;
+    border: 1px solid rgba(0, 184, 240, 0.3);
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, rgba(0, 102, 255, 0.13), transparent 60%),
+        var(--surface);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.comparison-form button {
+    grid-column: 1 / -1;
+    width: min(300px, 100%);
+    min-height: 52px;
+    background: linear-gradient(135deg, #10c9ef, #008ff0);
+}
+
+.comparison-verdict-card {
+    margin-top: 34px;
+    padding: clamp(22px, 4vw, 32px);
+    border: 1px solid rgba(0, 184, 240, 0.36);
+    border-radius: 16px;
+    background:
+        linear-gradient(135deg, rgba(0, 102, 255, 0.16), transparent 52%),
+        var(--surface);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.16);
+}
+
+.comparison-verdict-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 22px;
+}
+
+.comparison-verdict-header .eyebrow {
+    margin: 0 0 8px;
+}
+
+.comparison-verdict-header h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+    letter-spacing: -0.045em;
+}
+
+.comparison-verdict-badge {
+    padding: 10px 13px;
+    border: 1px solid rgba(74, 222, 128, 0.48);
+    border-radius: 999px;
+    color: #86efac;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.comparison-table-wrapper {
+    overflow: hidden;
+    margin-top: 26px;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 16px;
+    background: rgba(31, 41, 55, 0.68);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.14);
+}
+
+.comparison-table-wrapper .comparison-table {
+    margin: 0;
+    background: transparent;
+}
+
+.comparison-table-wrapper .comparison-table th {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.18);
+    background: rgba(0, 102, 255, 0.08);
+    color: #7dd3fc;
+}
+
+.comparison-table-wrapper .comparison-table td {
+    padding: 18px 16px;
+    border-bottom-color: rgba(148, 163, 184, 0.14);
+}
+
+.comparison-winner {
+    color: #86efac;
+    font-weight: 800;
+    background: rgba(74, 222, 128, 0.07);
+}
+
+.comparison-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+    .comparison-hero {
+        padding-top: 12px;
+    }
+
+    .comparison-form {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .comparison-form button {
+        width: 100%;
+    }
+
+    .comparison-verdict-header {
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .comparison-table-wrapper {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .comparison-actions {
+        display: grid;
+    }
+
+    .comparison-actions .secondary-button {
+        width: 100%;
+        text-align: center;
+    }
+}

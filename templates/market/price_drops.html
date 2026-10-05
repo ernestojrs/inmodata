@@ -3,70 +3,86 @@
 {% block title %}Bajas de precio | InmoData{% endblock %}
 
 {% block content %}
-<p class="eyebrow">Seguimiento de mercado</p>
+<section class="price-drops-hero">
+    <p class="eyebrow">Seguimiento de mercado</p>
 
-<h1>Propiedades con bajas de precio</h1>
+    <h1>Propiedades con bajas de precio</h1>
 
-<p class="lead">
-    Propiedades activas cuyo precio más reciente es menor
-    que su primer precio registrado por InmoData.
-</p>
+    <p class="lead">
+        Propiedades activas cuyo precio más reciente es menor
+        que su primer precio registrado por InmoData.
+    </p>
+</section>
 
-<section class="card">
-    <p class="confidence-note">
+<section class="price-drops-callout">
+    <div>
+        <span>Reducciones detectadas</span>
+
+        <strong>
+            {% if price_drops %}
+                {{ price_drops|length }}
+            {% else %}
+                0
+            {% endif %}
+        </strong>
+    </div>
+
+    <p>
         Una baja de precio no garantiza que una propiedad sea una oportunidad.
-        Revisa el análisis, las condiciones del inmueble y su disponibilidad.
+        Revisa el análisis, el estado del inmueble y su disponibilidad.
     </p>
 </section>
 
 {% if price_drops %}
-    <div class="price-drops-table">
-    <table>
-        <thead>
-            <tr>
-                <th>Sector</th>
-                <th>Precio anterior</th>
-                <th>Precio actual</th>
-                <th>Reducción</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for drop in price_drops %}
+    <div class="price-drops-table price-drops-premium-table">
+        <table>
+            <thead>
                 <tr>
-                    <td data-label="Sector">
-                        {{ drop.listing.sector }}
-                    </td>
-
-                    <td data-label="Precio anterior">
-                        US$ {{ drop.old_price|floatformat:0 }}
-                    </td>
-
-                    <td data-label="Precio actual">
-                        US$ {{ drop.new_price|floatformat:0 }}
-                    </td>
-
-                    <td data-label="Reducción" class="price-reduced">
-                        -US$ {{ drop.amount|floatformat:0 }}
-                        ({{ drop.percent }}%)
-                    </td>
-
-                    <td data-label="Acción">
-                        <a
-                            class="source-link"
-                            href="{% url 'listings:detail' drop.listing.pk %}"
-                        >
-                            Ver análisis
-                        </a>
-                    </td>
+                    <th>Sector</th>
+                    <th>Precio anterior</th>
+                    <th>Precio actual</th>
+                    <th>Reducción</th>
+                    <th></th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </thead>
+
+            <tbody>
+                {% for drop in price_drops %}
+                    <tr>
+                        <td data-label="Sector">
+                            {{ drop.listing.sector }}
+                        </td>
+
+                        <td data-label="Precio anterior">
+                            US$ {{ drop.old_price|floatformat:0 }}
+                        </td>
+
+                        <td data-label="Precio actual">
+                            US$ {{ drop.new_price|floatformat:0 }}
+                        </td>
+
+                        <td data-label="Reducción" class="price-reduced">
+                            -US$ {{ drop.amount|floatformat:0 }}
+                            ({{ drop.percent }}%)
+                        </td>
+
+                        <td data-label="Acción">
+                            <a
+                                class="source-link"
+                                href="{% url 'listings:detail' drop.listing.pk %}"
+                            >
+                                Ver análisis
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% else %}
     <section class="card">
         <h2>Aún no hay bajas de precio registradas</h2>
+
         <p>
             InmoData mostrará resultados aquí cuando una propiedad
             tenga al menos dos precios registrados y el último sea menor.

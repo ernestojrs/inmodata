@@ -87,6 +87,8 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Av. Núñez de Cáceres",
     "Av. Puerta de Hierro",
     "Av. República de Colombia",
+    "Av. Winston Churchill",
+    "Avenida 27 de Febrero",
 
 
 )

@@ -14,82 +14,96 @@ Estima tu cuota mensual, inicial, intereses y monto financiado para una propieda
 {% endblock %}
 
 {% block content %}
-<p class="eyebrow">Herramienta financiera</p>
+<section class="finance-hero">
+    <p class="eyebrow">Herramienta financiera</p>
 
-<h1>Calcula tu cuota hipotecaria</h1>
+    <h1>Calcula tu cuota hipotecaria</h1>
 
-<p class="lead">
-    Estima el pago mensual de una propiedad antes de solicitar
-    una oferta formal a una entidad financiera.
-</p>
+    <p class="lead">
+        Estima el pago mensual de una propiedad antes de solicitar
+        una oferta formal a una entidad financiera.
+    </p>
 
-<form method="get" class="calculator-form">
-    <div>
-        <label for="currency">Moneda</label>
-        <select name="currency" id="currency">
-            <option value="USD" {% if selected_currency == "USD" %}selected{% endif %}>
-                US$
-            </option>
-            <option value="DOP" {% if selected_currency == "DOP" %}selected{% endif %}>
-                RD$
-            </option>
-        </select>
-    </div>
+    <form method="get" class="calculator-form finance-calculator-form">
+        <div>
+            <label for="currency">Moneda</label>
 
-    <div>
-        <label for="price">Precio de la propiedad</label>
-        <input
-            type="number"
-            name="price"
-            id="price"
-            min="1"
-            step="0.01"
-            value="{{ entered_price }}"
-            required
-        >
-    </div>
+            <select name="currency" id="currency">
+                <option
+                    value="USD"
+                    {% if selected_currency == "USD" %}selected{% endif %}
+                >
+                    US$
+                </option>
 
-    <div>
-        <label for="down_payment">Inicial</label>
-        <input
-            type="number"
-            name="down_payment"
-            id="down_payment"
-            min="0"
-            step="0.01"
-            value="{{ entered_down_payment }}"
-            required
-        >
-    </div>
+                <option
+                    value="DOP"
+                    {% if selected_currency == "DOP" %}selected{% endif %}
+                >
+                    RD$
+                </option>
+            </select>
+        </div>
 
-    <div>
-        <label for="annual_rate">Tasa anual (%)</label>
-        <input
-            type="number"
-            name="annual_rate"
-            id="annual_rate"
-            min="0"
-            step="0.01"
-            value="{{ entered_annual_rate }}"
-            required
-        >
-    </div>
+        <div>
+            <label for="price">Precio de la propiedad</label>
 
-    <div>
-        <label for="years">Plazo en años</label>
-        <input
-            type="number"
-            name="years"
-            id="years"
-            min="1"
-            step="1"
-            value="{{ entered_years }}"
-            required
-        >
-    </div>
+            <input
+                type="number"
+                name="price"
+                id="price"
+                min="1"
+                step="0.01"
+                value="{{ entered_price }}"
+                required
+            >
+        </div>
 
-    <button type="submit">Calcular cuota</button>
-</form>
+        <div>
+            <label for="down_payment">Inicial</label>
+
+            <input
+                type="number"
+                name="down_payment"
+                id="down_payment"
+                min="0"
+                step="0.01"
+                value="{{ entered_down_payment }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="annual_rate">Tasa anual (%)</label>
+
+            <input
+                type="number"
+                name="annual_rate"
+                id="annual_rate"
+                min="0"
+                step="0.01"
+                value="{{ entered_annual_rate }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="years">Plazo en años</label>
+
+            <input
+                type="number"
+                name="years"
+                id="years"
+                min="1"
+                step="1"
+                value="{{ entered_years }}"
+                required
+            >
+        </div>
+
+        <button type="submit">Calcular cuota</button>
+    </form>
+</section>
 
 {% if error %}
     <section class="card error-card">
@@ -99,40 +113,77 @@ Estima tu cuota mensual, inicial, intereses y monto financiado para una propieda
 {% endif %}
 
 {% if result %}
-    <section class="card mortgage-result-card">
-        <p class="eyebrow">Estimación</p>
+    <section class="mortgage-result-card finance-result-card">
+        <div class="finance-result-header">
+            <div>
+                <p class="eyebrow">Estimación de cuota</p>
+                <h2>Tu cuota mensual estimada</h2>
+            </div>
 
-        <h2>Cuota mensual: {{ result.currency }} {{ result.monthly_payment|floatformat:0 }}</h2>
+            <span>{{ result.currency }}</span>
+        </div>
+
+        <p class="finance-monthly-payment">
+            {{ result.currency }}
+            {{ result.monthly_payment|floatformat:0 }}
+        </p>
+
+        <p class="finance-result-description">
+            Estimación para una propiedad de
+            <strong>
+                {{ result.currency }} {{ result.price|floatformat:0 }}
+            </strong>.
+        </p>
+
+        <div class="finance-result-metrics">
+            <div>
+                <span>Inicial</span>
+                <strong>
+                    {{ result.currency }}
+                    {{ result.down_payment|floatformat:0 }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Monto financiado</span>
+                <strong>
+                    {{ result.currency }}
+                    {{ result.loan_amount|floatformat:0 }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Tasa anual</span>
+                <strong>{{ result.annual_rate }}%</strong>
+            </div>
+
+            <div>
+                <span>Plazo</span>
+                <strong>{{ result.years }} años</strong>
+            </div>
+        </div>
 
         <table class="mortgage-summary-table">
             <tbody>
                 <tr>
-                    <th>Precio de propiedad</th>
-                    <td>{{ result.currency }} {{ result.price|floatformat:0 }}</td>
+                    <th>Cuotas mensuales</th>
+                    <td>{{ result.months }}</td>
                 </tr>
-                <tr>
-                    <th>Inicial</th>
-                    <td>{{ result.currency }} {{ result.down_payment|floatformat:0 }}</td>
-                </tr>
-                <tr>
-                    <th>Monto financiado</th>
-                    <td>{{ result.currency }} {{ result.loan_amount|floatformat:0 }}</td>
-                </tr>
-                <tr>
-                    <th>Tasa anual</th>
-                    <td>{{ result.annual_rate }}%</td>
-                </tr>
-                <tr>
-                    <th>Plazo</th>
-                    <td>{{ result.years }} años ({{ result.months }} cuotas)</td>
-                </tr>
+
                 <tr>
                     <th>Total pagado</th>
-                    <td>{{ result.currency }} {{ result.total_payment|floatformat:0 }}</td>
+                    <td>
+                        {{ result.currency }}
+                        {{ result.total_payment|floatformat:0 }}
+                    </td>
                 </tr>
+
                 <tr>
                     <th>Total de intereses</th>
-                    <td>{{ result.currency }} {{ result.total_interest|floatformat:0 }}</td>
+                    <td>
+                        {{ result.currency }}
+                        {{ result.total_interest|floatformat:0 }}
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -143,6 +194,7 @@ Estima tu cuota mensual, inicial, intereses y monto financiado para una propieda
         </p>
     </section>
 {% endif %}
+
 {% if result %}
     <script>
         if (typeof fbq === "function") {

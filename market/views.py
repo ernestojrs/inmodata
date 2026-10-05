@@ -59,6 +59,7 @@ def market_overview(request):
         "last_updated" : last_updated,
         "sector_stats": sector_stats,
         "selected_sort": selected_sort,
+        "sectors_count": listings.values("sector").distinct().count(),
     }
 
     return render(request,"market/overview.html", context)

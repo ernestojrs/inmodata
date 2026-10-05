@@ -3,56 +3,58 @@
 {% block title %}Comparar propiedades | InmoData{% endblock %}
 
 {% block content %}
-<p class="eyebrow">Comparación</p>
+<section class="comparison-hero">
+    <p class="eyebrow">Comparación</p>
 
-<h1>Compara dos propiedades</h1>
+    <h1>Compara dos propiedades</h1>
 
-<p class="lead">
-    Revisa sus características y precio por metro cuadrado
-    antes de tomar una decisión.
-</p>
+    <p class="lead">
+        Revisa sus características y precio por metro cuadrado
+        antes de tomar una decisión.
+    </p>
 
-<form method="get" class="filter-form">
-    <div>
-        <label for="listing_1">Primera propiedad</label>
+    <form method="get" class="filter-form comparison-form">
+        <div>
+            <label for="listing_1">Primera propiedad</label>
 
-        <select name="listing_1" id="listing_1" required>
-            <option value="">Selecciona una propiedad</option>
+            <select name="listing_1" id="listing_1" required>
+                <option value="">Selecciona una propiedad</option>
 
-            {% for listing in available_listings %}
-                <option
-                    value="{{ listing.pk }}"
-                    {% if selected_listing_1_id == listing.pk|stringformat:"s" %}
-                        selected
-                    {% endif %}
-                >
-                    {{ listing.sector }} — US$ {{ listing.price|floatformat:0 }} — {{ listing.area_m2|floatformat:0 }} m²
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+                {% for listing in available_listings %}
+                    <option
+                        value="{{ listing.pk }}"
+                        {% if selected_listing_1_id == listing.pk|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ listing.sector }} — US$ {{ listing.price|floatformat:0 }} — {{ listing.area_m2|floatformat:0 }} m²
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <div>
-        <label for="listing_2">Segunda propiedad</label>
+        <div>
+            <label for="listing_2">Segunda propiedad</label>
 
-        <select name="listing_2" id="listing_2" required>
-            <option value="">Selecciona una propiedad</option>
+            <select name="listing_2" id="listing_2" required>
+                <option value="">Selecciona una propiedad</option>
 
-            {% for listing in available_listings %}
-                <option
-                    value="{{ listing.pk }}"
-                    {% if selected_listing_2_id == listing.pk|stringformat:"s" %}
-                        selected
-                    {% endif %}
-                >
-                    {{ listing.sector }} — US$ {{ listing.price|floatformat:0 }} — {{ listing.area_m2|floatformat:0 }} m²
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+                {% for listing in available_listings %}
+                    <option
+                        value="{{ listing.pk }}"
+                        {% if selected_listing_2_id == listing.pk|stringformat:"s" %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ listing.sector }} — US$ {{ listing.price|floatformat:0 }} — {{ listing.area_m2|floatformat:0 }} m²
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <button type="submit">Comparar</button>
-</form>
+        <button type="submit">Comparar propiedades</button>
+    </form>
+</section>
 
 {% if error %}
     <section class="card error-card">
@@ -63,80 +65,112 @@
 
 {% if listing_1 and listing_2 %}
     {% if comparison %}
-        <section class="card">
-            <p class="eyebrow">Resultado de la comparación</p>
+        <section class="comparison-verdict-card">
+            <div class="comparison-verdict-header">
+                <div>
+                    <p class="eyebrow">Resultado de la comparación</p>
+                    <h2>{{ comparison.label }}</h2>
+                </div>
 
-            <h2>{{ comparison.label }}</h2>
+                {% if comparison.lower_price_listing %}
+                    <span class="comparison-verdict-badge">
+                        {{ comparison.difference_percent }}%
+                    </span>
+                {% endif %}
+            </div>
 
             {% if comparison.lower_price_listing %}
                 <p>
-                    La diferencia es de
-                    <strong>{{ comparison.difference_percent }}%</strong>
-                    en precio por m².
-                </p>
-
-                <p class="confidence-note">
-                    Un menor precio por m² no garantiza que sea la mejor opción.
-                    Considera ubicación, estado, características, disponibilidad
-                    y condiciones legales antes de decidir.
+                    La diferencia corresponde al precio por m² de ambas
+                    propiedades.
                 </p>
             {% endif %}
+
+            <p class="confidence-note">
+                Un menor precio por m² no garantiza que sea la mejor opción.
+                Considera ubicación, estado, características, disponibilidad
+                y condiciones legales antes de decidir.
+            </p>
         </section>
     {% endif %}
-    <table class="comparison-table">
-        <thead>
-            <tr>
-                <th>Característica</th>
-                <th>{{ listing_1.sector }}</th>
-                <th>{{ listing_2.sector }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <th>Precio</th>
-                <td>US$ {{ listing_1.price|floatformat:0 }}</td>
-                <td>US$ {{ listing_2.price|floatformat:0 }}</td>
-            </tr>
-            <tr>
-                <th>Área</th>
-                <td>{{ listing_1.area_m2|floatformat:0 }} m²</td>
-                <td>{{ listing_2.area_m2|floatformat:0 }} m²</td>
-            </tr>
-            <tr>
-                <th>Precio por m²</th>
-                <td>US$ {{ listing_1.price_per_m2|floatformat:0 }}</td>
-                <td>US$ {{ listing_2.price_per_m2|floatformat:0 }}</td>
-            </tr>
-            <tr>
-                <th>Habitaciones</th>
-                <td>{{ listing_1.bedrooms|default:"No disponible" }}</td>
-                <td>{{ listing_2.bedrooms|default:"No disponible" }}</td>
-            </tr>
-            <tr>
-                <th>Baños</th>
-                <td>{{ listing_1.bathrooms|default:"No disponible" }}</td>
-                <td>{{ listing_2.bathrooms|default:"No disponible" }}</td>
-            </tr>
-            <tr>
-                <th>Parqueos</th>
-                <td>{{ listing_1.parking_spaces|default:"No disponible" }}</td>
-                <td>{{ listing_2.parking_spaces|default:"No disponible" }}</td>
-            </tr>
-        </tbody>
-    </table>
 
-    <p>
-        <a class="source-link" href="{% url 'listings:detail' listing_1.pk %}">
-            Ver análisis de la primera propiedad
-        </a>
-    </p>
+    <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Característica</th>
+                    <th>{{ listing_1.sector }}</th>
+                    <th>{{ listing_2.sector }}</th>
+                </tr>
+            </thead>
 
-    <p>
-        <a class="source-link" href="{% url 'listings:detail' listing_2.pk %}">
-            Ver análisis de la segunda propiedad
+            <tbody>
+                <tr>
+                    <th>Precio</th>
+                    <td>US$ {{ listing_1.price|floatformat:0 }}</td>
+                    <td>US$ {{ listing_2.price|floatformat:0 }}</td>
+                </tr>
+
+                <tr>
+                    <th>Área</th>
+                    <td>{{ listing_1.area_m2|floatformat:0 }} m²</td>
+                    <td>{{ listing_2.area_m2|floatformat:0 }} m²</td>
+                </tr>
+
+                <tr>
+                    <th>Precio por m²</th>
+
+                    <td
+                        class="{% if comparison.lower_price_listing.pk == listing_1.pk %}comparison-winner{% endif %}"
+                    >
+                        US$ {{ listing_1.price_per_m2|floatformat:0 }}
+                    </td>
+
+                    <td
+                        class="{% if comparison.lower_price_listing.pk == listing_2.pk %}comparison-winner{% endif %}"
+                    >
+                        US$ {{ listing_2.price_per_m2|floatformat:0 }}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Habitaciones</th>
+                    <td>{{ listing_1.bedrooms|default:"No disponible" }}</td>
+                    <td>{{ listing_2.bedrooms|default:"No disponible" }}</td>
+                </tr>
+
+                <tr>
+                    <th>Baños</th>
+                    <td>{{ listing_1.bathrooms|default:"No disponible" }}</td>
+                    <td>{{ listing_2.bathrooms|default:"No disponible" }}</td>
+                </tr>
+
+                <tr>
+                    <th>Parqueos</th>
+                    <td>{{ listing_1.parking_spaces|default:"No disponible" }}</td>
+                    <td>{{ listing_2.parking_spaces|default:"No disponible" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <section class="comparison-actions">
+        <a
+            class="secondary-button"
+            href="{% url 'listings:detail' listing_1.pk %}"
+        >
+            Ver análisis de {{ listing_1.sector }}
         </a>
-    </p>
+
+        <a
+            class="secondary-button"
+            href="{% url 'listings:detail' listing_2.pk %}"
+        >
+            Ver análisis de {{ listing_2.sector }}
+        </a>
+    </section>
 {% endif %}
+
 {% if comparison %}
     <script>
         if (typeof fbq === "function") {

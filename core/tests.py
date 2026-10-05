@@ -164,6 +164,15 @@ class HomePageTests(TestCase):
             {"status": "ok"},
         )
 
+    def test_home_page_has_organization_structured_data(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'application/ld+json')
+        self.assertContains(response, '"@type": "Organization"')
+        self.assertContains(response, '"name": "InmoData"')
+        self.assertContains(response, '"@type": "WebSite"')
+
     
   
 

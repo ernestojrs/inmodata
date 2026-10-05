@@ -23,6 +23,34 @@
     >
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="InmoData">
+    {% if request.resolver_match.url_name == "home" %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": "{{ site_url }}/#organization",
+                "name": "InmoData",
+                "url": "{{ site_url }}/",
+                "logo": "{{ site_url }}{% static 'images/inmodata-icon.png' %}",
+                "description": "Plataforma de datos e inteligencia inmobiliaria para República Dominicana."
+            },
+            {
+                "@type": "WebSite",
+                "@id": "{{ site_url }}/#website",
+                "url": "{{ site_url }}/",
+                "name": "InmoData",
+                "alternateName": "InmoData República Dominicana",
+                "inLanguage": "es-DO",
+                "publisher": {
+                    "@id": "{{ site_url }}/#organization"
+                }
+            }
+        ]
+    }
+    </script>
+    {% endif %}
         {% if google_analytics_id %}
             <!-- Google Analytics -->
             <script

@@ -14,84 +14,100 @@ Encuentra propiedades que aparecen por debajo del precio de mercado local según
 {% endblock %}
 
 {% block content %}
-<p class="eyebrow">Análisis de mercado</p>
+<section class="opportunities-hero">
+    <p class="eyebrow">Análisis de mercado</p>
 
-<h1>Oportunidades inmobiliarias</h1>
+    <h1>Oportunidades inmobiliarias</h1>
 
-<p class="lead">
-    Propiedades con un precio por m² al menos 10% por debajo
-    de propiedades comparables en el mismo sector.
-</p>
+    <p class="lead">
+        Propiedades con un precio por m² al menos 10% por debajo
+        de propiedades comparables en el mismo sector.
+    </p>
+</section>
 
-<section class="card">
-    <p class="confidence-note">
-        Esta página es orientativa. Una oportunidad no sustituye una tasación,
-        inspección técnica ni revisión legal de la propiedad.
+<section class="opportunities-callout">
+    <div>
+        <span>Oportunidades detectadas</span>
+
+        <strong>
+            {% if opportunities %}
+                {{ opportunities|length }}
+            {% else %}
+                0
+            {% endif %}
+        </strong>
+    </div>
+
+    <p>
+        Una oportunidad es una señal basada en los datos disponibles.
+        Confirma siempre el estado físico, legal y comercial de la propiedad.
     </p>
 </section>
 
 {% if opportunities %}
-    <div class="opportunities-table">
-    <table>
-        <thead>
-            <tr>
-                <th>Sector</th>
-                <th>Precio</th>
-                <th>Área</th>
-                <th>Precio por m²</th>
-                <th>Mercado por m²</th>
-                <th>Comparables</th>
-                <th>Diferencia</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for opportunity in opportunities %}
+    <div class="opportunities-table opportunities-premium-table">
+        <table>
+            <thead>
                 <tr>
-                    <td data-label="Sector">
-                        {{ opportunity.listing.sector }}
-                    </td>
-
-                    <td data-label="Precio">
-                        US$ {{ opportunity.listing.price|floatformat:0 }}
-                    </td>
-
-                    <td data-label="Área">
-                        {{ opportunity.listing.area_m2|floatformat:0 }} m²
-                    </td>
-
-                    <td data-label="Precio por m²">
-                        US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}
-                    </td>
-
-                    <td data-label="Mercado por m²">
-                        US$ {{ opportunity.market_price_per_m2|floatformat:0 }}
-                    </td>
-
-                    <td data-label="Comparables">
-                        {{ opportunity.comparables_count }}
-                    </td>
-
-                    <td data-label="Diferencia" class="below-market">
-                        {{ opportunity.difference_percent }}%
-                    </td>
-
-                    <td data-label="Acción">
-                        <a
-                            class="source-link"
-                            href="{% url 'listings:detail' opportunity.listing.pk %}"
-                        >
-                            Ver análisis
-                        </a>
-                    </td>
+                    <th>Sector</th>
+                    <th>Precio</th>
+                    <th>Área</th>
+                    <th>Precio por m²</th>
+                    <th>Mercado por m²</th>
+                    <th>Comparables</th>
+                    <th>Diferencia</th>
+                    <th></th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </thead>
+
+            <tbody>
+                {% for opportunity in opportunities %}
+                    <tr>
+                        <td data-label="Sector">
+                            {{ opportunity.listing.sector }}
+                        </td>
+
+                        <td data-label="Precio">
+                            US$ {{ opportunity.listing.price|floatformat:0 }}
+                        </td>
+
+                        <td data-label="Área">
+                            {{ opportunity.listing.area_m2|floatformat:0 }} m²
+                        </td>
+
+                        <td data-label="Precio por m²">
+                            US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}
+                        </td>
+
+                        <td data-label="Mercado por m²">
+                            US$ {{ opportunity.market_price_per_m2|floatformat:0 }}
+                        </td>
+
+                        <td data-label="Comparables">
+                            {{ opportunity.comparables_count }}
+                        </td>
+
+                        <td data-label="Diferencia" class="below-market">
+                            {{ opportunity.difference_percent }}%
+                        </td>
+
+                        <td data-label="Acción">
+                            <a
+                                class="source-link"
+                                href="{% url 'listings:detail' opportunity.listing.pk %}"
+                            >
+                                Ver análisis
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% else %}
     <section class="card">
         <h2>Aún no hay oportunidades detectadas</h2>
+
         <p>
             InmoData necesita al menos tres propiedades comparables
             en un sector para identificar oportunidades con prudencia.
