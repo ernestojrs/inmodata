@@ -5,6 +5,7 @@ from decimal import Decimal, InvalidOperation
 from statistics import mean, median
 from django.http import Http404
 from listings.services import get_comparable_listings, MINIMUM_COMPARABLES
+import json
 
 # Create your views here.
 

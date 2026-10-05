@@ -19,38 +19,9 @@ en {{ listing.sector }}. Área: {{ listing.area_m2|floatformat:0 }} m².
 {% endblock %}
 
 {% block structured_data %}
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "Apartment",
-    "name": "Apartamento en {{ listing.sector|escapejs }}",
-    "description": "Apartamento en venta en {{ listing.sector|escapejs }}, {{ listing.city|escapejs }}. Análisis de precio inmobiliario por InmoData.",
-    "url": "{{ canonical_url }}",
-    "dateModified": "{{ listing.updated_at|date:'c' }}",
-    "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "{{ listing.city|escapejs }}",
-        "addressCountry": "DO"
-    },
-    "floorSize": {
-        "@type": "QuantitativeValue",
-        "value": {{ listing.area_m2 }},
-        "unitText": "m²"
-    },
-    {% if listing.bedrooms %}
-    "numberOfBedrooms": {{ listing.bedrooms }},
-    {% endif %}
-    {% if listing.bathrooms %}
-    "numberOfBathroomsTotal": {{ listing.bathrooms }},
-    {% endif %}
-    "offers": {
-        "@type": "Offer",
-        "price": {{ listing.price }},
-        "priceCurrency": "{{ listing.currency }}",
-        "url": "{{ listing.source_url }}"
-    }
-}
-</script>
+    <script type="application/ld+json">
+    {{ listing_schema_json|safe }}
+    </script>
 {% endblock %}
 
 {% block content %}

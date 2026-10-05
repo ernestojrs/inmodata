@@ -15,6 +15,7 @@ from .services import get_comparable_listings, MINIMUM_COMPARABLES
 from django.http import HttpResponse
 from django.utils import timezone
 import csv
+import json
 
 # Create your views here.
 
@@ -240,6 +241,50 @@ def listing_detail(request, pk):
             "percent": percent,
         }
 
+    listing_schema = {
+        "@context": "https://schema.org",
+        "@type": "Apartment",
+        "@id": f"{request.build_absolute_uri()}#apartment",
+        "name": f"Apartamento en {listing.sector}",
+        "description": (
+            f"Apartamento en venta en {listing.sector}, {listing.city}. "
+            "Análisis de precio inmobiliario por InmoData."
+        ),
+        "url": request.build_absolute_uri(),
+        "dateModified": listing.updated_at.isoformat(),
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": listing.city,
+            "addressCountry": "DO",
+        },
+        "floorSize": {
+            "@type": "QuantitativeValue",
+            "value": float(listing.area_m2),
+            "unitText": "m²",
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": float(listing.price),
+            "priceCurrency": listing.currency,
+            "url": listing.source_url,
+        },
+    }
+
+    if listing.bedrooms is not None:
+        listing_schema["numberOfBedrooms"] = listing.bedrooms
+
+    if listing.bathrooms is not None:
+        listing_schema["numberOfBathroomsTotal"] = float(
+            listing.bathrooms
+        )
+
+    listing_schema_json = json.dumps(
+        listing_schema,
+        ensure_ascii=False,
+    ).replace("</", "<\\/")
+
+    
+
     return render(
         request,
         "listings/detail.html",
@@ -255,6 +300,7 @@ def listing_detail(request, pk):
                 f"{listing.area_m2} m2.  \n"
                 f"{request.build_absolute_uri()}"
             ),
+            "listing_schema_json": listing_schema_json,
         }
     )
 
