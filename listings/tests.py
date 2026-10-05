@@ -164,6 +164,28 @@ class ListingDetailPriceChangeTests(TestCase):
         self.assertContains(response, "Compartir por WhatsApp")
         self.assertContains(response, "https://wa.me/")
 
+    def test_detail_page_has_property_structured_data(self):
+        listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="SCHEMA-001",
+            source_url="https://example.com/schema-001",
+            sector="Naco",
+            city="Santo Domingo",
+            price=Decimal("250000.00"),
+            area_m2=Decimal("120.00"),
+            bedrooms=3,
+            bathrooms=Decimal("2.5"),
+        )
+
+        response = self.client.get(
+            reverse("listings:detail", args=[listing.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '"@type": "Apartment"')
+        self.assertContains(response, '"priceCurrency": "USD"')
+        self.assertContains(response, '"name": "Apartamento en Naco"')
+
 class ListingFilterTests(TestCase):
     def setUp(self):
         Listing.objects.create(
