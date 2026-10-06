@@ -183,7 +183,23 @@ class HomePageTests(TestCase):
         self.assertContains(response, ".png")
         self.assertContains(response, 'name="twitter:card"')
 
-    
+    @override_settings(
+    GOOGLE_ADSENSE_CLIENT="ca-pub-9693982254180672"
+    )
+    def test_ads_txt_has_google_adsense_record(self):
+        response = self.client.get(reverse("ads_txt"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/plain")
+        self.assertEqual(
+            response.content.decode(),
+            (
+                "google.com, pub-9693982254180672, DIRECT, "
+                "f08c47fec0942fa0\n"
+            ),
+        )
+
+        
   
 
     

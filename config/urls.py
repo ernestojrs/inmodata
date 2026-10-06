@@ -30,6 +30,7 @@ urlpatterns = [
     path("robots.txt", core_views.robots_txt, name="robots_txt"),
     path("datos/", core_views.data_status, name="data_status"),
     path("health/", core_views.health_check, name="health_check"),
+    path("ads.txt", core_views.ads_txt, name="ads_txt"),
     
 ]
 

@@ -109,6 +109,27 @@ def robots_txt(request):
         content_type="text/plain",
     )
 
+@require_GET
+def ads_txt(request):
+    publisher_id = settings.GOOGLE_ADSENSE_CLIENT.removeprefix(
+        "ca-"
+    )
+
+    if not publisher_id:
+        return HttpResponse(
+            "",
+            content_type="text/plain",
+            status=404,
+        )
+
+    return HttpResponse(
+        (
+             f"google.com, {publisher_id}, DIRECT, "
+            "f08c47fec0942fa0\n"
+        ),
+        content_type="text/plain",
+    )
+
 def custom_404(request, exception):
     return render(
         request,
