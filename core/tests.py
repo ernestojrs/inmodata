@@ -173,6 +173,16 @@ class HomePageTests(TestCase):
         self.assertContains(response, '"name": "InmoData"')
         self.assertContains(response, '"@type": "WebSite"')
 
+
+    def test_home_page_has_social_share_image(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'property="og:image"')
+        self.assertContains(response, "property-search-hero.")
+        self.assertContains(response, ".png")
+        self.assertContains(response, 'name="twitter:card"')
+
     
   
 

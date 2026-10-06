@@ -18,6 +18,20 @@ Apartamento en venta por {{ listing.currency }} {{ listing.price|floatformat:0 }
 en {{ listing.sector }}. Área: {{ listing.area_m2|floatformat:0 }} m².
 {% endblock %}
 
+{% block og_image_alt %}
+Análisis de un apartamento en {{ listing.sector }} por InmoData.
+{% endblock %}
+
+{% block twitter_title %}
+Apartamento en {{ listing.sector }} | InmoData
+{% endblock %}
+
+{% block twitter_description %}
+Precio: {{ listing.currency }} {{ listing.price|floatformat:0 }} ·
+Área: {{ listing.area_m2|floatformat:0 }} m² ·
+Consulta su análisis de mercado.
+{% endblock %}
+
 {% block structured_data %}
     <script type="application/ld+json">
     {{ listing_schema_json|safe }}

@@ -2,8 +2,13 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+    name="google-adsense-account"
+    content="ca-pub-9693982254180672"
+    >
     <title>{% block title %}InmoData{% endblock %}</title>
     <meta
         name="description"
@@ -23,6 +28,34 @@
     >
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="InmoData">
+    <meta property="og:locale" content="es_DO">
+
+    <meta
+        property="og:image"
+        content="{% block og_image %}{{ site_url }}{% static 'images/property-search-hero.png' %}{% endblock %}"
+    >
+
+    <meta
+        property="og:image:alt"
+        content="{% block og_image_alt %}InmoData: datos e inteligencia inmobiliaria en República Dominicana.{% endblock %}"
+    >
+
+    <meta name="twitter:card" content="summary_large_image">
+
+    <meta
+        name="twitter:title"
+        content="{% block twitter_title %}InmoData | Inteligencia inmobiliaria{% endblock %}"
+    >
+
+    <meta
+        name="twitter:description"
+        content="{% block twitter_description %}Compara precios, propiedades y datos inmobiliarios en República Dominicana.{% endblock %}"
+    >
+
+    <meta
+        name="twitter:image"
+        content="{{ site_url }}{% static 'images/property-search-hero.png' %}"
+    >
     {% if request.resolver_match.url_name == "home" %}
     <script type="application/ld+json">
     {
