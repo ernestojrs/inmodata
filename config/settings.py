@@ -84,6 +84,16 @@ SITE_URL = os.environ.get(
     "http://127.0.0.1:8000",
 ).rstrip("/")
 
+GOOGLE_ADSENSE_CLIENT = os.environ.get(
+    "GOOGLE_ADSENSE_CLIENT",
+    "",
+).strip()
+
+GOOGLE_ADSENSE_LISTINGS_SLOT = os.environ.get(
+    "GOOGLE_ADSENSE_LISTINGS_SLOT",
+    "",
+).strip()
+
 render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
 if render_hostname:

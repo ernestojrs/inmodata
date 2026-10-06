@@ -111,9 +111,11 @@ def robots_txt(request):
 
 @require_GET
 def ads_txt(request):
-    publisher_id = settings.GOOGLE_ADSENSE_CLIENT.removeprefix(
-        "ca-"
-    )
+    publisher_id = getattr(
+    settings,
+    "GOOGLE_ADSENSE_CLIENT",
+    "",
+    ).removeprefix("ca-")
 
     if not publisher_id:
         return HttpResponse(
