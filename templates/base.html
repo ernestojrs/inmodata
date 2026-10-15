@@ -139,6 +139,14 @@
             fbq("track", "PageView");
         </script>
     {% endif %}
+    {% block analytics_events %}{% endblock %}
+    {% if google_adsense_client %}
+    <script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ google_adsense_client }}"
+        crossorigin="anonymous"
+    ></script>
+    {% endif %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
     <link
         rel="icon"
@@ -237,6 +245,29 @@
                 >
                     Metodología
                 </a>
+                {% if user.is_authenticated %}
+                    <form
+                        class="nav-logout-form"
+                        method="post"
+                        action="{% url 'accounts:logout' %}"
+                    >
+                        {% csrf_token %}
+                        <button class="nav-logout-button" type="submit">
+                            Cerrar sesión
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}">
+                        Iniciar sesión
+                    </a>
+
+                    <a
+                        class="nav-account-link"
+                        href="{% url 'accounts:signup' %}"
+                    >
+                        Crear cuenta
+                    </a>
+                {% endif %}
             </nav>
 
             <details class="mobile-nav">
@@ -308,6 +339,30 @@
                     >
                         Metodología
                     </a>
+
+                    {% if user.is_authenticated %}
+                        <form
+                            class="nav-logout-form"
+                            method="post"
+                            action="{% url 'accounts:logout' %}"
+                        >
+                            {% csrf_token %}
+                            <button class="nav-logout-button" type="submit">
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}">
+                            Iniciar sesión
+                        </a>
+
+                        <a
+                            class="nav-account-link"
+                            href="{% url 'accounts:signup' %}"
+                        >
+                            Crear cuenta
+                        </a>
+                    {% endif %}
                 </nav>
             </details>
         </div>

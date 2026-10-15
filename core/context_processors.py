@@ -9,4 +9,6 @@ def tracking_settings(request):
         "google_analytics_id": settings.GOOGLE_ANALYTICS_ID,
         "canonical_url": canonical_url,
         "site_url": settings.SITE_URL,
+        "google_adsense_client": settings.GOOGLE_ADSENSE_CLIENT,
+        "google_adsense_listings_slot": settings.GOOGLE_ADSENSE_LISTINGS_SLOT,
     }

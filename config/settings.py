@@ -150,7 +150,25 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'listings.apps.ListingsConfig',
     'market.apps.MarketConfig',
+    'accounts.apps.AccountsConfig',
 ]
+
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "home"
+
+AUTHENTICATION_BACKENDS = [
+    "accounts.backends.EmailOrUsernameModelBackend",
+]
+
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
+EMAIL_FROM = os.environ.get(
+    "EMAIL_FROM",
+    "InmoData <hola@inmodata.online>",
+).strip()
+EMAIL_VERIFICATION_MAX_AGE_HOURS = int(
+    os.environ.get("EMAIL_VERIFICATION_MAX_AGE_HOURS", "48")
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -260,6 +278,5 @@ STORAGES = {
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-# InmoData does not send emails yet.
-# We will configure an SMTP provider when email features are added.
-MAILERS = {}
+# Transactional account email is delivered through the Resend HTTPS API in
+# accounts.services. Credentials are configured as environment variables.

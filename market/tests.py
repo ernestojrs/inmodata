@@ -1,7 +1,9 @@
 from django.test import TestCase
 from decimal import Decimal
 from django.urls import reverse
-from listings.models import Listing, ListingPriceSnapshot
+from listings.models import Listing, ListingPriceSnapshot, SectorMarketSnapshot
+from django.contrib.auth import get_user_model
+from datetime import date
 
 
 # Create your tests here.
@@ -41,6 +43,48 @@ class ValuationViewTests(TestCase):
             bathrooms=Decimal("2.0"),
         )
 
+    def test_signed_in_user_can_view_sector_trend(self):
+        user = get_user_model().objects.create_user(
+            username="trend-user",
+            password="SecurePass123!",
+        )
+
+        SectorMarketSnapshot.objects.create(
+            city="Santo Domingo",
+            sector="Naco",
+            snapshot_date=date(2026, 10, 12),
+            listings_count=3,
+            median_price_per_m2=Decimal("2000.00"),
+        )
+
+        SectorMarketSnapshot.objects.create(
+            city="Santo Domingo",
+            sector="Naco",
+            snapshot_date=date(2026, 10, 13),
+            listings_count=3,
+            median_price_per_m2=Decimal("2200.00"),
+        )
+
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("market:sector_detail", args=["Naco"]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response.context["sector_trend"]["has_comparison"]
+        )
+        self.assertEqual(
+            response.context["sector_trend"]["difference_percent"],
+            Decimal("10.00"),
+        )
+        self.assertContains(response, "Tendencia del mercado")
+        self.assertContains(
+            response,
+            "Subió frente a la última fotografía",
+        )
+    
     def test_property_with_market_price_is_within_market_range(self):
         response = self.client.get(
             reverse("market:valuation"),
@@ -172,6 +216,33 @@ class ValuationViewTests(TestCase):
         self.assertEqual(response.context["sector"], "Naco")
         self.assertContains(response, "Mercado inmobiliario en Naco")
         self.assertContains(response, "Precio mediano por m²")
+        self.assertNotContains(
+            response,
+            "Posición frente a Santo Domingo",
+        )
+
+    def test_signed_in_user_can_view_sector_benchmark(self):
+        user = get_user_model().objects.create_user(
+            username="ernesto",
+            password="SecurePass123!",
+        )
+
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("market:sector_detail", args=["Naco"]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Posición frente a Santo Domingo",
+        )
+        self.assertContains(
+            response,
+            "Similar al promedio de Santo Domingo",
+        )
+                
 
     def test_market_overview_can_sort_sectors_by_lowest_price_per_m2(self):
         Listing.objects.create(

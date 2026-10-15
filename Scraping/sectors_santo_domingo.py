@@ -89,6 +89,13 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Av. República de Colombia",
     "Av. Winston Churchill",
     "Avenida 27 de Febrero",
+    "Brisas del Mirador",
+    "Buenos Aires",
+    "Buenos Aires del Mirador",
+    "Carmen Maria",
+    "Centro de los Heroes",
+    "Cerros de Arroyo Hondo",
+
 
 
 )

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Crear cuenta | InmoData{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <p class="eyebrow">Cuenta gratuita</p>
+
+    <h1>Desbloquea análisis avanzados</h1>
+
+    <p class="lead">
+        Crea una cuenta para consultar comparaciones de sector y,
+        próximamente, tendencias históricas del mercado.
+    </p>
+
+    <form method="post" class="account-form">
+        {% csrf_token %}
+
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+            <div class="account-field">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+
+                {{ field }}
+
+                {% if field.help_text %}
+                    <small>{{ field.help_text }}</small>
+                {% endif %}
+
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+       <button class="button account-submit" type="submit">
+            Crear cuenta gratis
+        </button>
+    </form>
+
+    <p class="account-switch">
+        ¿Ya tienes cuenta?
+        <a href="{% url 'accounts:login' %}">Inicia sesión</a>.
+    </p>
+</section>
+{% endblock %}

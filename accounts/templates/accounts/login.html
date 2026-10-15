@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión | InmoData{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <div class="account-card">
+        <p class="eyebrow">Tu cuenta</p>
+
+        <h1>Inicia sesión</h1>
+
+        <p class="account-intro">
+            Accede a los análisis avanzados de InmoData.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="account-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="account-field">
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <div class="account-errors">
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button class="button account-submit" type="submit">
+                Iniciar sesión
+            </button>
+        </form>
+
+        <p class="account-switch">
+            ¿Aún no tienes cuenta?
+            <a href="{% url 'accounts:signup' %}">
+                Crear cuenta gratis
+            </a>.
+        </p>
+    </div>
+</section>
+{% endblock %}

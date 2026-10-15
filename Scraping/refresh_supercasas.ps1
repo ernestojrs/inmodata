@@ -95,9 +95,11 @@ if ($rows.Count -eq 0) {
     )
 }
 
-Write-Host ""
 Write-Host "3. Validando CSV con Django..."
 Write-Host "   Propiedades válidas encontradas: $($rows.Count)"
+
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 
 if ($Commit) {
     Write-Host ""
@@ -106,24 +108,52 @@ if ($Commit) {
     & $pythonPath `
         "manage.py" `
         "import_listings_csv" `
-        "raw_data\supercasas_listings.csv"
+        "raw_data\supercasas_listings.csv" 2>&1
 }
 else {
     Write-Host ""
     Write-Host (
-        "4. Simulación solamente. " +
-        "La base de datos no será modificada."
+        "4. Simulacion solamente. " +
+        "La base de datos no sera modificada."
     )
 
     & $pythonPath `
         "manage.py" `
         "import_listings_csv" `
         "raw_data\supercasas_listings.csv" `
-        "--dry-run"
+        "--dry-run" 2>&1
 }
 
-if ($LASTEXITCODE -ne 0) {
-    throw "La importación de Django falló."
+$importExitCode = $LASTEXITCODE
+$ErrorActionPreference = $previousErrorActionPreference
+
+if ($importExitCode -ne 0) {
+    throw "La importacion de Django fallo."
+}
+
+if ($Commit) {
+    Write-Host ""
+    Write-Host "5. Guardando fotografia diaria del mercado..."
+
+    $previousSnapshotErrorActionPreference = (
+        $ErrorActionPreference
+    )
+
+    $ErrorActionPreference = "Continue"
+
+    & $pythonPath `
+        "manage.py" `
+        "snapshot_market" 2>&1
+
+    $snapshotExitCode = $LASTEXITCODE
+
+    $ErrorActionPreference = (
+        $previousSnapshotErrorActionPreference
+    )
+
+    if ($snapshotExitCode -ne 0) {
+        throw "No se pudo guardar la fotografia diaria del mercado."
+    }
 }
 
 Write-Host ""

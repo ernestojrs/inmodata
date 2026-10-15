@@ -12,6 +12,126 @@
     Santo Domingo.
 </p>
 
+{% if sector_benchmark %}
+    <section class="sector-benchmark-card {{ sector_benchmark.css_class }}">
+        <div>
+            <p class="eyebrow">Posición frente a Santo Domingo</p>
+
+            <h2>{{ sector_benchmark.label }}</h2>
+
+            <p>
+                El precio mediano de {{ sector }} es
+                <strong>
+                    {% if sector_benchmark.difference_percent > 0 %}+{% endif %}
+                    {{ sector_benchmark.difference_percent }}%
+                </strong>
+                frente a la referencia general de Santo Domingo.
+            </p>
+        </div>
+
+        <div class="sector-benchmark-values">
+            <div>
+                <span>{{ sector }}</span>
+                <strong>
+                    US$ {{ median_price_per_m2|floatformat:0 }} / m²
+                </strong>
+            </div>
+
+            <div>
+                <span>Santo Domingo</span>
+                <strong>
+                    US$ {{ sector_benchmark.city_median_price_per_m2|floatformat:0 }} / m²
+                </strong>
+            </div>
+        </div>
+    </section>
+{% else %}
+    <section class="sector-unlock-card">
+        <p class="eyebrow">Análisis avanzado</p>
+
+        <h2>¿Cómo se compara {{ sector }} con Santo Domingo?</h2>
+
+        <p>
+            Crea una cuenta gratuita para descubrir si este sector está
+            por debajo, dentro o por encima del promedio de mercado.
+        </p>
+
+        <div class="sector-unlock-actions">
+            <a
+                class="button"
+                href="{% url 'accounts:signup' %}?next={{ request.path|urlencode }}"
+            >
+                Crear cuenta gratis
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}"
+            >
+                Iniciar sesión
+            </a>
+        </div>
+    </section>
+{% endif %}
+
+{% if sector_trend %}
+    <section
+        class="sector-benchmark-card sector-trend-card {{ sector_trend.css_class }}"
+    >
+        <div>
+            <p class="eyebrow">Tendencia del mercado</p>
+
+            {% if sector_trend.has_comparison %}
+                <h2>{{ sector_trend.label }}</h2>
+
+                <p>
+                    El precio mediano por m² cambió
+                    <strong>
+                        {% if sector_trend.difference_percent > 0 %}+{% endif %}
+                        {{ sector_trend.difference_percent }}%
+                    </strong>
+                    desde la fotografía anterior.
+                </p>
+            {% else %}
+                <h2>Estamos reuniendo historial</h2>
+
+                <p>
+                    La tendencia estará disponible cuando existan al menos
+                    dos fotografías diarias de este sector.
+                </p>
+            {% endif %}
+        </div>
+
+        {% if sector_trend.has_comparison %}
+            <div class="sector-benchmark-values">
+                <div>
+                    <span>
+                        Última ·
+                        {{ sector_trend.latest_snapshot.snapshot_date|date:"d/m/Y" }}
+                    </span>
+                    <strong>
+                        US$
+                        {{ sector_trend.latest_snapshot.median_price_per_m2|floatformat:0 }}
+                        / m²
+                    </strong>
+                </div>
+
+                <div>
+                    <span>
+                        Anterior ·
+                        {{ sector_trend.previous_snapshot.snapshot_date|date:"d/m/Y" }}
+                    </span>
+                    <strong>
+                        US$
+                        {{ sector_trend.previous_snapshot.median_price_per_m2|floatformat:0 }}
+                        / m²
+                    </strong>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+{% endif %}
+
 <section class="card">
     <p>Propiedades analizadas: <strong>{{ listings_count }}</strong></p>
 

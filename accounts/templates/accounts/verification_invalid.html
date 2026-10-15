@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Enlace no disponible | InmoData{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <div class="account-card">
+        <p class="eyebrow">Verificación de correo</p>
+
+        {% if expired %}
+            <h1>Este enlace venció</h1>
+            <p class="account-intro">
+                Solicita un nuevo enlace para confirmar y activar tu cuenta.
+            </p>
+        {% else %}
+            <h1>Este enlace ya no está disponible</h1>
+            <p class="account-intro">
+                Puede que tu correo ya se haya confirmado o que el enlace no sea
+                válido.
+            </p>
+        {% endif %}
+
+        <a class="button account-submit" href="{% url 'accounts:resend_verification' %}">
+            Reenviar enlace
+        </a>
+    </div>
+</section>
+{% endblock %}

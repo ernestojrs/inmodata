@@ -132,6 +132,43 @@ class ImportRun(models.Model):
                 f"{self.sources}"
         )
 
-    
+class SectorMarketSnapshot(models.Model):
+    city = models.CharField(
+        max_length=100,
+        default="Santo Domingo"
+    )
+
+    sector = models.CharField(
+        max_length=100)
+
+    snapshot_date = models.DateField(
+        default=timezone.localdate,
+    )
+
+    listings_count = models.PositiveIntegerField()
+
+    median_price_per_m2 = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-snapshot_date","sector"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["city", "sector", "snapshot_date"],
+                name="unique_sector_snapshot_per_day",
+            )
+        ]
+
+    def __str__(self):
+        return(
+             f"{self.sector} · "
+            f"{self.snapshot_date} · "
+            f"US$ {self.median_price_per_m2}/m²"
+        )
 
 

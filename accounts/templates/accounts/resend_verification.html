@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Reenviar verificación | InmoData{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <div class="account-card">
+        <p class="eyebrow">Verificación de correo</p>
+
+        <h1>Reenviar enlace</h1>
+
+        <p class="account-intro">
+            Escribe el correo que usaste al crear la cuenta. Si hay una cuenta
+            pendiente, enviaremos un enlace nuevo.
+        </p>
+
+        <form method="post" class="account-form">
+            {% csrf_token %}
+
+            <div class="account-field">
+                <label for="id_email">Correo electrónico</label>
+                <input
+                    id="id_email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            <button class="button account-submit" type="submit">
+                Enviar nuevo enlace
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Cuenta confirmada | InmoData{% endblock %}
+
+{% block analytics_events %}
+    {% if track_signup %}
+        <script>
+            if (typeof fbq === "function") {
+                fbq("track", "CompleteRegistration", {
+                    content_name: "email_verified"
+                });
+            }
+
+            if (typeof gtag === "function") {
+                gtag("event", "sign_up", {
+                    method: "email_verification"
+                });
+            }
+        </script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <div class="account-card">
+        <p class="eyebrow">Cuenta confirmada</p>
+
+        <h1>Tu cuenta ya está activa</h1>
+
+        <p class="account-intro">
+            Ahora puedes iniciar sesión con tu correo electrónico o nombre de
+            usuario y consultar los análisis avanzados de InmoData.
+        </p>
+
+        <a class="button account-submit" href="{{ next_url|default:'/' }}">
+            Continuar en InmoData
+        </a>
+    </div>
+</section>
+{% endblock %}

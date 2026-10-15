@@ -3246,3 +3246,357 @@ td {
         text-align: center;
     }
 }
+
+.adsense-slot {
+    min-height: 100px;
+    margin: 1.5rem 0;
+    padding: 0.85rem;
+    overflow: hidden;
+    background: rgba(16, 34, 57, 0.45);
+    border: 1px solid rgba(126, 157, 187, 0.2);
+    border-radius: 0.85rem;
+}
+
+.adsense-label {
+    margin: 0 0 0.6rem;
+    color: #8ea7bd;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.sector-benchmark-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    border: 1px solid rgba(75, 209, 237, 0.25);
+    border-radius: 1rem;
+    background: rgba(17, 35, 59, 0.72);
+}
+
+.sector-benchmark-card h2 {
+    margin: 0.3rem 0 0.55rem;
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+}
+
+.sector-benchmark-card p {
+    margin: 0;
+    color: #c6d7e5;
+}
+
+.sector-benchmark-values {
+    display: grid;
+    min-width: 240px;
+    gap: 0.65rem;
+}
+
+.sector-benchmark-values div {
+    padding: 0.75rem;
+    background: rgba(4, 17, 33, 0.5);
+    border-radius: 0.7rem;
+}
+
+.sector-benchmark-values span,
+.sector-benchmark-values strong {
+    display: block;
+}
+
+.sector-benchmark-values span {
+    margin-bottom: 0.25rem;
+    color: #91abc0;
+    font-size: 0.78rem;
+}
+
+.sector-benchmark-values strong {
+    color: #ffffff;
+}
+
+.sector-benchmark-card.is-lower {
+    border-color: rgba(40, 201, 141, 0.45);
+}
+
+.sector-benchmark-card.is-higher {
+    border-color: rgba(255, 165, 82, 0.45);
+}
+
+@media (max-width: 700px) {
+    .sector-benchmark-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .sector-benchmark-values {
+        min-width: 0;
+    }
+}
+
+.account-page {
+    width: min(100%, 620px);
+    margin: 3rem auto;
+    padding: 2rem;
+    background: rgba(17, 35, 59, 0.72);
+    border: 1px solid rgba(75, 209, 237, 0.28);
+    border-radius: 1rem;
+}
+
+.account-form {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.75rem;
+}
+
+.account-field {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.account-field input {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    color: #ffffff;
+    background: rgba(4, 17, 33, 0.7);
+    border: 1px solid rgba(143, 174, 202, 0.45);
+    border-radius: 0.55rem;
+}
+
+.account-field small {
+    color: #9cb4c8;
+}
+
+.account-field ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: #ffb4a8;
+    font-size: 0.88rem;
+}
+
+.account-switch {
+    margin-top: 1.25rem;
+    color: #c6d7e5;
+}
+
+.account-switch a {
+    color: #27c8ef;
+}
+
+.sector-unlock-card {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(20, 57, 86, 0.88),
+            rgba(16, 34, 57, 0.88)
+        );
+    border: 1px solid rgba(39, 200, 239, 0.38);
+    border-radius: 1rem;
+}
+
+.sector-unlock-card h2 {
+    margin: 0.35rem 0 0.65rem;
+}
+
+.sector-unlock-card p {
+    max-width: 680px;
+    color: #c6d7e5;
+}
+
+.sector-unlock-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.nav-account-link,
+.nav-logout-button {
+    padding: 0.6rem 0.85rem;
+    color: #071825;
+    background: #20c8ef;
+    border: 0;
+    border-radius: 0.55rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.nav-account-link:hover,
+.nav-logout-button:hover {
+    color: #071825;
+    background: #67dff7;
+}
+
+.nav-logout-form {
+    margin: 0;
+}
+
+/* Header navigation: keep desktop links on one clean line */
+.nav-container {
+    gap: 1.25rem;
+}
+
+.desktop-nav {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(0.55rem, 0.9vw, 1.15rem);
+}
+
+.desktop-nav > a,
+.desktop-nav .nav-account-link,
+.desktop-nav .nav-logout-button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.88rem;
+}
+
+.desktop-nav .nav-account-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.4rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 0.55rem;
+    font-size: 0.82rem;
+    line-height: 1;
+}
+
+.desktop-nav .nav-logout-button {
+    min-height: 2.4rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.82rem;
+    line-height: 1;
+}
+
+.desktop-nav .nav-logout-form {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+/*
+ * At laptop widths, use the clean dropdown menu instead of
+ * squeezing nine links and account actions into one row.
+ */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    position: relative;
+}
+
+/* Switch from the crowded desktop menu to a dropdown earlier. */
+@media (max-width: 1500px) {
+    .desktop-nav {
+        display: none;
+    }
+
+    .mobile-nav {
+        display: block;
+        position: relative;
+        margin-left: auto;
+    }
+
+    .mobile-nav summary {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 0.75rem;
+        color: #f8fafc;
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .mobile-nav summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .mobile-nav:not([open]) .mobile-menu {
+        display: none;
+    }
+
+    .mobile-nav[open] .mobile-menu {
+        position: absolute;
+        top: calc(100% + 0.7rem);
+        right: 0;
+        z-index: 110;
+        display: flex;
+        flex-direction: column;
+        width: min(21rem, calc(100vw - 2rem));
+        padding: 0.75rem;
+        background: #142338;
+        border: 1px solid rgba(39, 200, 239, 0.35);
+        border-radius: 0.8rem;
+        box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.35);
+    }
+
+    .mobile-menu a,
+    .mobile-menu .nav-logout-button {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 0.9rem;
+        color: #eef7ff;
+        text-align: left;
+        border-radius: 0.5rem;
+    }
+
+    .mobile-menu a:hover {
+        color: #ffffff;
+        background: rgba(39, 200, 239, 0.12);
+    }
+
+    .mobile-menu .nav-logout-form {
+        width: 100%;
+        margin: 0;
+    }
+
+    .mobile-menu .nav-account-link {
+        margin-top: 0.35rem;
+        color: #071825;
+        text-align: center;
+        background: #20c8ef;
+    }
+
+    .mobile-menu .nav-logout-button {
+        border: 0;
+        background: transparent;
+    }
+}
+
+@media (min-width: 1501px) {
+    .mobile-nav {
+        display: none;
+    }
+}
+
+/* Keep the premium-card actions visually consistent */
+.sector-unlock-actions,
+.premium-lock-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.sector-unlock-actions .button,
+.sector-unlock-actions .secondary-button,
+.premium-lock-actions .button,
+.premium-lock-actions .secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 3.75rem;
+    margin: 0;
+    padding: 0.75rem 1.35rem;
+    line-height: 1.1;
+}

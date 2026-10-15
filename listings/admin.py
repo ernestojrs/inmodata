@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Listing, ListingPriceSnapshot, ImportRun
+from .models import (Listing, ListingPriceSnapshot, ImportRun,SectorMarketSnapshot)
 
 # Register your models here.
 
@@ -147,4 +147,31 @@ class ImportRunAdmin(admin.ModelAdmin):
         "deactivated_count",
         "completed_at",
      )
+
+@admin.register(SectorMarketSnapshot)
+class SectorMarketSnapshotAdmin(admin.ModelAdmin):
+    list_display = (
+        "sector",
+        "city",
+        "snapshot_date",
+        "median_price_per_m2",
+        "listings_count",
+    )
+    list_filter = (
+        "city",
+        "snapshot_date",
+    )
+    search_fields = (
+        "sector",
+        "city",
+    )
+    ordering = (
+        "-snapshot_date",
+        "sector",
+    )
+    date_hierarchy = "snapshot_date"
+    readonly_fields = (
+        "created_at",
+    )
+
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Revisa tu correo | InmoData{% endblock %}
+
+{% block content %}
+<section class="account-page">
+    <div class="account-card">
+        <p class="eyebrow">Confirma tu cuenta</p>
+
+        <h1>Revisa tu correo electrónico</h1>
+
+        <p class="account-intro">
+            Si existe una cuenta pendiente para ese correo, enviamos un enlace
+            para activarla. Revisa también las carpetas de spam y promociones.
+        </p>
+
+        <p class="account-switch">
+            ¿No recibiste el correo?
+            <a href="{% url 'accounts:resend_verification' %}">
+                Reenviar enlace de verificación
+            </a>.
+        </p>
+    </div>
+</section>
+{% endblock %}
