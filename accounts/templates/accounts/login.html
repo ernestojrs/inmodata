@@ -48,6 +48,12 @@
         </form>
 
         <p class="account-switch">
+            <a href="{% url 'accounts:password_reset' %}">
+                ¿Olvidaste tu contraseña?
+            </a>
+        </p>
+
+        <p class="account-switch">
             ¿Aún no tienes cuenta?
             <a href="{% url 'accounts:signup' %}">
                 Crear cuenta gratis

@@ -175,6 +175,35 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
                         <a class="source-link" href="{% url 'listings:detail' listing.pk %}">
                             Ver análisis
                         </a>
+
+                        {% if user.is_authenticated %}
+                            <form
+                                method="post"
+                                action="{% url 'listings:toggle_favorite' listing.pk %}"
+                            >
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ current_path }}">
+
+                                <button
+                                    class="secondary-button"
+                                    type="submit"
+                                    aria-pressed="{% if listing.pk in favorite_listing_ids %}true{% else %}false{% endif %}"
+                                >
+                                    {% if listing.pk in favorite_listing_ids %}
+                                        ★ Guardada
+                                    {% else %}
+                                        ☆ Guardar
+                                    {% endif %}
+                                </button>
+                            </form>
+                        {% else %}
+                            <a
+                                class="secondary-button"
+                                href="{% url 'accounts:login' %}?next={{ current_path|urlencode }}"
+                            >
+                                ☆ Guardar
+                            </a>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}
@@ -224,6 +253,31 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
             <a class="button listing-mobile-button" href="{% url 'listings:detail' listing.pk %}">
                 Ver análisis
             </a>
+
+            {% if user.is_authenticated %}
+                <form
+                    method="post"
+                    action="{% url 'listings:toggle_favorite' listing.pk %}"
+                >
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ current_path }}">
+
+                    <button class="secondary-button listing-mobile-button" type="submit">
+                        {% if listing.pk in favorite_listing_ids %}
+                            ★ Guardada
+                        {% else %}
+                            ☆ Guardar
+                        {% endif %}
+                    </button>
+                </form>
+            {% else %}
+                <a
+                    class="secondary-button listing-mobile-button"
+                    href="{% url 'accounts:login' %}?next={{ current_path|urlencode }}"
+                >
+                    ☆ Guardar
+                </a>
+            {% endif %}
         </article>
     {% endfor %}
 </section>

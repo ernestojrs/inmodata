@@ -95,6 +95,10 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Carmen Maria",
     "Centro de los Heroes",
     "Cerros de Arroyo Hondo",
+    "Cerros de Arroyo Hondo III",
+    "Colinas del Seminario",
+    "Colinas del Arroyo II",
+    
 
 
 

@@ -99,3 +99,45 @@ class AccountViewsTests(TestCase):
 
         refreshed_response = self.client.get(reverse("accounts:signup_complete"))
         self.assertNotContains(refreshed_response, '"CompleteRegistration"')
+
+
+    @patch("accounts.forms.send_password_reset_email")
+    def test_password_reset_sends_email_for_active_user(self, send_email):
+        get_user_model().objects.create_user(
+            username="ernesto",
+            email="ernesto@example.com",
+            password="SecurePass123!",
+        )
+
+        response = self.client.post(
+            reverse("accounts:password_reset"),
+            {
+                "email": "ernesto@example.com",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("accounts:password_reset_done"),
+        )
+        send_email.assert_called_once()
+
+        self.assertEqual(
+            send_email.call_args.kwargs["email"],
+            "ernesto@example.com",
+        )
+
+    @patch("accounts.forms.send_password_reset_email")
+    def test_password_reset_does_not_reveal_unknown_email(self, send_email):
+        response = self.client.post(
+            reverse("accounts:password_reset"),
+            {
+                "email": "unknown@example.com",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("accounts:password_reset_done"),
+        )
+        send_email.assert_not_called()

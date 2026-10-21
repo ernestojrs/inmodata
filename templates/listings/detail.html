@@ -268,6 +268,35 @@ Consulta su análisis de mercado.
         ← Volver a propiedades
     </a>
 
+        {% if user.is_authenticated %}
+            <form
+                method="post"
+                action="{% url 'listings:toggle_favorite' listing.pk %}"
+            >
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ current_path }}">
+
+                <button
+                    class="secondary-button"
+                    type="submit"
+                    aria-pressed="{% if is_favorite %}true{% else %}false{% endif %}"
+                >
+                    {% if is_favorite %}
+                        ★ Propiedad guardada
+                    {% else %}
+                        ☆ Guardar propiedad
+                    {% endif %}
+                </button>
+            </form>
+        {% else %}
+            <a
+                class="secondary-button"
+                href="{% url 'accounts:login' %}?next={{ current_path|urlencode }}"
+            >
+                ☆ Guardar propiedad
+            </a>
+        {% endif %}
+
     <a
         class="button listing-share-button"
         href="https://wa.me/?text={{ share_text|urlencode }}"

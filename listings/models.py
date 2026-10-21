@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.conf import settings
 
+
 # Create your models here.
 
 class Listing(models.Model):
@@ -80,6 +81,33 @@ class Listing(models.Model):
         if self.is_stale:
             return "Datos pendientes de actualización"
         return "Datos Actualizados"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favorite_listings",
+    )
+
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "listing"],
+                name="unique_user_listing_favorite",
+            ),
+        ]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user} saved {self.listing}"
 
     
 

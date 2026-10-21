@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordResetForm
 from django.db.models import Q
+from django.urls import reverse
+from .services import send_password_reset_email
 
 
 User = get_user_model()
@@ -69,3 +71,29 @@ class EmailOrUsernameAuthenticationForm(AuthenticationForm):
             }
         ),
     )
+
+class ResendPasswordResetForm(PasswordResetForm):
+    def send_mail(
+            self,
+            subject_tempalte_name,
+            email_template_name,
+            context,
+            from_email,
+            to_email,
+            html_email_template_name=None,
+    ):
+        reset_url = (
+            f"{context['protocol']}://{context['domain']}"
+            + reverse(
+                "accounts:password_reset_confirm",
+                kwargs={
+                    "uidb64": context["uid"],
+                    "token": context["token"],
+                },
+            )
+        )
+
+        send_password_reset_email(
+            email=to_email,
+            reset_url=reset_url,
+        )

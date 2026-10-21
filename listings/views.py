@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import DecimalField, F, ExpressionWrapper, Max, Q
-from .models import Listing
+from .models import Listing, Favorite
 from decimal import Decimal, InvalidOperation
 from statistics import mean, median
 from django.core.paginator import Paginator
@@ -16,6 +16,12 @@ from django.http import HttpResponse
 from django.utils import timezone
 import csv
 import json
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+
 
 # Create your views here.
 
@@ -113,6 +119,18 @@ def listings_list(request):
     paginator = Paginator(listings,20)
     page_obj = paginator.get_page(request.GET.get("page"))
 
+    favorite_listing_ids = set()
+
+    if request.user.is_authenticated:
+        favorite_listing_ids = set(
+            Favorite.objects.filter(
+                user=request.user,
+                listing__in=page_obj.object_list,
+            ).values_list("listing_id", flat=True)
+        )
+
+    current_path = request.get_full_path()
+
     query_parameters = request.GET.copy()
     query_parameters.pop("page",None)
     base_query = query_parameters.urlencode()
@@ -139,6 +157,8 @@ def listings_list(request):
         "selected_sort": selected_sort,
         "entered_query": entered_query,
         "results_count": results_count,
+        "favorite_listing_ids": favorite_listing_ids,
+        "current_path": current_path,
     }
     
     return render(request, "listings/list.html", context)
@@ -149,6 +169,14 @@ def listing_detail(request, pk):
         pk=pk,
         is_active = True,
     )
+
+    is_favorite = False
+
+    if request.user.is_authenticated:
+        is_favorite = Favorite.objects.filter(
+            user = request.user,
+            listing = listing,
+        ).exists()
 
     comparables, comparison_note = get_comparable_listings(
          sector=listing.sector,
@@ -301,6 +329,8 @@ def listing_detail(request, pk):
                 f"{request.build_absolute_uri()}"
             ),
             "listing_schema_json": listing_schema_json,
+            "is_favorite": is_favorite,
+            "current_path": request.get_full_path(),
         }
     )
 
@@ -540,4 +570,34 @@ def export_listings_backup(request):
 
     return response
 
-    
+
+@require_POST
+@login_required
+def toggle_favorite(request,pk):
+    listing = get_object_or_404(
+        Listing,
+        pk=pk,
+        is_active = True
+    )
+
+    favorite, created = Favorite.objects.get_or_create(
+        user = request.user,
+        listing = listing,
+    )
+
+    if not created:
+        favorite.delete()
+
+    next_url = request.POST.get("next","")
+
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse("listings:detail", args=[listing.pk])
+
+    return redirect(next_url)
+
+
+

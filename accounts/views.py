@@ -2,14 +2,32 @@ import uuid
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth import login
+from django.contrib.auth import login, views as auth_views
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .forms import SignUpForm
+from .forms import SignUpForm,ResendPasswordResetForm
 from .models import EmailVerification
 from .services import EmailDeliveryError, send_verification_email
+from django.urls import reverse_lazy
+
+
+class ResendPasswordResetView(auth_views.PasswordResetView):
+    form_class = ResendPasswordResetForm
+    template_name = "accounts/password_reset.html"
+    success_url = reverse_lazy("accounts:password_reset_done")
+
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except EmailDeliveryError:
+            form.add_error(
+                None,
+                "No pudimos enviar el enlace. Inténtalo de nuevo en unos minutos.",
+            )
+            return self.form_invalid(form)
+
 
 
 def _safe_next_url(request):

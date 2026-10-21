@@ -21,6 +21,34 @@ urlpatterns = [
         ),
         name="login",
     ),
+
+        path(
+        "recuperar-contrasena/",
+        views.ResendPasswordResetView.as_view(),
+        name="password_reset",
+    ),
+    path(
+        "recuperar-contrasena/enviado/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="accounts/password_reset_done.html",
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "restablecer-contrasena/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="accounts/password_reset_confirm.html",
+            success_url=reverse_lazy("accounts:password_reset_complete"),
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "restablecer-contrasena/completado/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="accounts/password_reset_complete.html",
+        ),
+        name="password_reset_complete",
+    ),
     path(
         "verificacion-enviada/",
         views.verification_sent,
