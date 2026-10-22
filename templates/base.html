@@ -246,6 +246,13 @@
                     Metodología
                 </a>
                 {% if user.is_authenticated %}
+
+                    <a
+                        class="{% if request.resolver_match.url_name == 'favorites' %}is-active{% endif %}"
+                        href="{% url 'listings:favorites' %}"
+                    >
+                        Mis favoritos
+                    </a>
                     <form
                         class="nav-logout-form"
                         method="post"
@@ -341,6 +348,12 @@
                     </a>
 
                     {% if user.is_authenticated %}
+                            <a
+                                class="{% if request.resolver_match.url_name == 'favorites' %}is-active{% endif %}"
+                                href="{% url 'listings:favorites' %}"
+                            >
+                                Mis favoritos
+                            </a>
                         <form
                             class="nav-logout-form"
                             method="post"
@@ -367,6 +380,16 @@
             </details>
         </div>
     </header>
+
+        {% if messages %}
+            <section class="container site-messages" aria-live="polite">
+                {% for message in messages %}
+                    <div class="site-message {{ message.tags }}" role="status">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </section>
+        {% endif %}
 
     <main class="container">
         {% block content %}{% endblock %}
@@ -417,5 +440,38 @@
             <p>© {% now "Y" %} InmoData · Información inmobiliaria orientativa.</p>
         </div>
     </footer>
+
+        {% if favorite_event and favorite_event.action == "added" %}
+            {{ favorite_event|json_script:"favorite-event-data" }}
+
+            <script>
+                const favoriteEvent = JSON.parse(
+                    document.getElementById("favorite-event-data").textContent
+                );
+
+                if (typeof fbq === "function") {
+                    fbq("track", "AddToWishlist", {
+                        content_type: "property",
+                        content_ids: [String(favoriteEvent.listing_id)],
+                        content_name: favoriteEvent.name,
+                        content_category: favoriteEvent.sector
+                    });
+                }
+
+                if (typeof gtag === "function") {
+                    gtag("event", "add_to_wishlist", {
+                        items: [
+                            {
+                                item_id: String(favoriteEvent.listing_id),
+                                item_name: favoriteEvent.name,
+                                item_category: "Apartamento",
+                                item_category2: favoriteEvent.sector,
+                                quantity: 1
+                            }
+                        ]
+                    });
+                }
+            </script>
+        {% endif %}
 </body>
 </html>

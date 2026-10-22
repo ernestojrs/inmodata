@@ -3600,3 +3600,25 @@ td {
     padding: 0.75rem 1.35rem;
     line-height: 1.1;
 }
+
+.site-messages {
+    margin-top: 24px;
+}
+
+.site-message {
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    background: var(--surface);
+}
+
+.site-message.success {
+    border-color: rgba(0, 184, 240, 0.7);
+    background: rgba(0, 184, 240, 0.12);
+}
+
+.site-message.info {
+    border-color: rgba(0, 102, 255, 0.65);
+    background: rgba(0, 102, 255, 0.1);
+}

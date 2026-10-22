@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 
 # Create your views here.
@@ -585,8 +586,26 @@ def toggle_favorite(request,pk):
         listing = listing,
     )
 
-    if not created:
+    if created:
+        request.session["favorite_event"] = {
+            "action": "added",
+            "listing_id": listing.pk,
+            "name": f"Apartamento en {listing.sector}",
+            "sector": listing.sector,
+        }
+
+        messages.success(
+            request,
+            "Propiedad guardada en Mis favoritos.",
+        )
+
+    else:
         favorite.delete()
+
+        messages.info(
+            request,
+            "Propiedad eliminada de Mis favoritos.",
+        )
 
     next_url = request.POST.get("next","")
 
@@ -599,5 +618,20 @@ def toggle_favorite(request,pk):
 
     return redirect(next_url)
 
+@login_required
+def favorites_list(request):
+    favorites=(
+        Favorite.objects.filter(
+            user=request.user,
+            listing__is_active=True,
+        ).select_related("listing")
+    )
 
+    return render(
+        request,
+        "listings/favorites.html",
+        {
+            "favorites": favorites,
+        },
+    )
 

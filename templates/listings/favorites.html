@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Mis favoritos | InmoData{% endblock %}
+
+{% block meta_description %}
+Propiedades guardadas para comparar y analizar más tarde en InmoData.
+{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Cuenta</p>
+
+<h1>Mis favoritos</h1>
+
+<p class="lead">
+    Propiedades que guardaste para revisarlas y compararlas más adelante.
+</p>
+
+{% if favorites %}
+    <div class="desktop-listings-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>Precio</th>
+                    <th>Área</th>
+                    <th>Precio por m²</th>
+                    <th>Guardada</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for favorite in favorites %}
+                    <tr>
+                        <td>{{ favorite.listing.sector }}</td>
+
+                        <td>
+                            US$ {{ favorite.listing.price|floatformat:0 }}
+                        </td>
+
+                        <td>
+                            {{ favorite.listing.area_m2|floatformat:0 }} m²
+                        </td>
+
+                        <td>
+                            US$ {{ favorite.listing.price_per_m2|floatformat:0 }}
+                        </td>
+
+                        <td>
+                            {{ favorite.created_at|date:"d/m/Y" }}
+                        </td>
+
+                        <td>
+                            <a
+                                class="source-link"
+                                href="{% url 'listings:detail' favorite.listing.pk %}"
+                            >
+                                Ver análisis
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{% url 'listings:toggle_favorite' favorite.listing.pk %}"
+                            >
+                                {% csrf_token %}
+                                <input
+                                    type="hidden"
+                                    name="next"
+                                    value="{% url 'listings:favorites' %}"
+                                >
+
+                                <button class="secondary-button" type="submit">
+                                    Quitar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <section class="mobile-listing-cards">
+        {% for favorite in favorites %}
+            <article class="listing-mobile-card">
+                <div class="listing-mobile-top">
+                    <p class="eyebrow">{{ favorite.listing.sector }}</p>
+
+                    <span class="fresh-badge">Guardada</span>
+                </div>
+
+                <p class="listing-mobile-price">
+                    US$ {{ favorite.listing.price|floatformat:0 }}
+                </p>
+
+                <div class="listing-mobile-metrics">
+                    <div>
+                        <span>Área</span>
+                        <strong>
+                            {{ favorite.listing.area_m2|floatformat:0 }} m²
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Precio por m²</span>
+                        <strong>
+                            US$ {{ favorite.listing.price_per_m2|floatformat:0 }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Habitaciones</span>
+                        <strong>
+                            {{ favorite.listing.bedrooms|default:"—" }}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Guardada</span>
+                        <strong>
+                            {{ favorite.created_at|date:"d/m/Y" }}
+                        </strong>
+                    </div>
+                </div>
+
+                <a
+                    class="button listing-mobile-button"
+                    href="{% url 'listings:detail' favorite.listing.pk %}"
+                >
+                    Ver análisis
+                </a>
+
+                <form
+                    method="post"
+                    action="{% url 'listings:toggle_favorite' favorite.listing.pk %}"
+                >
+                    {% csrf_token %}
+                    <input
+                        type="hidden"
+                        name="next"
+                        value="{% url 'listings:favorites' %}"
+                    >
+
+                    <button
+                        class="secondary-button listing-mobile-button"
+                        type="submit"
+                    >
+                        Quitar de favoritos
+                    </button>
+                </form>
+            </article>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="card">
+        <p class="eyebrow">Aún no has guardado propiedades</p>
+
+        <h2>Encuentra una propiedad que te interese</h2>
+
+        <p>
+            Explora el mercado y usa el botón “Guardar” para reunir aquí las
+            propiedades que quieras revisar después.
+        </p>
+
+        <a class="button" href="{% url 'listings:list' %}">
+            Explorar propiedades
+        </a>
+    </section>
+{% endif %}
+{% endblock %}

@@ -2,7 +2,7 @@ from django.test import TestCase
 from io import StringIO
 from decimal import Decimal
 from pathlib import Path
-from .models import Listing, ListingPriceSnapshot, ImportRun
+from .models import Favorite, Listing, ListingPriceSnapshot, ImportRun
 from tempfile import TemporaryDirectory
 from django.urls import reverse
 from django.core.management import call_command
@@ -670,4 +670,124 @@ class CsvExportViewTests(TestCase):
             exported_models,
         )
         self.assertIn("listings.importrun", exported_models)
-        
+
+class FavoritesViewTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        user_model = get_user_model()
+
+        self.user = user_model.objects.create_user(
+            username="favorite-user",
+            email="favorite@example.com",
+            password="secure-password",
+        )
+
+        self.listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="FAVORITE-001",
+            source_url="https://example.com/favorite-001",
+            sector="Naco",
+            city="Santo Domingo",
+            price=Decimal("200000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+            bathrooms=2,
+            is_active=True,
+        )
+
+    def test_anonymous_user_is_redirected_from_favorites_page(self):
+        response = self.client.get(
+            reverse("listings:favorites"),
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={reverse('listings:favorites')}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_can_view_own_favorites(self):
+        Favorite.objects.create(
+            user=self.user,
+            listing=self.listing,
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:favorites"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mis favoritos")
+        self.assertContains(response, "Naco")
+        self.assertContains(response, "200000")
+
+    def test_signed_in_user_can_add_and_remove_favorite(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse(
+                "listings:toggle_favorite",
+                args=[self.listing.pk],
+            ),
+            {
+                "next": reverse("listings:favorites"),
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("listings:favorites"),
+        )
+
+        self.assertTrue(
+            Favorite.objects.filter(
+                user=self.user,
+                listing=self.listing,
+            ).exists()
+        )
+
+        self.client.post(
+            reverse(
+                "listings:toggle_favorite",
+                args=[self.listing.pk],
+            ),
+            {
+                "next": reverse("listings:favorites"),
+            },
+        )
+
+        self.assertFalse(
+            Favorite.objects.filter(
+                user=self.user,
+                listing=self.listing,
+            ).exists()
+        )
+
+    def test_adding_favorite_stores_tracking_event(self):
+        self.client.force_login(self.user)
+
+        self.client.post(
+            reverse(
+                "listings:toggle_favorite",
+                args=[self.listing.pk],
+            ),
+            {
+                "next": reverse("listings:favorites"),
+            },
+        )
+
+        favorite_event = self.client.session["favorite_event"]
+
+        self.assertEqual(favorite_event["action"], "added")
+        self.assertEqual(
+            favorite_event["listing_id"],
+            self.listing.pk,
+        )
+        self.assertEqual(
+            favorite_event["sector"],
+            "Naco",
+        )
+
