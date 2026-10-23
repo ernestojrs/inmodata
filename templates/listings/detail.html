@@ -307,13 +307,57 @@ Consulta su análisis de mercado.
     </a>
 
     <a
-        class="source-link"
+        class="source-link listing-source-link"
         href="{{ listing.source_url }}"
         target="_blank"
         rel="noopener noreferrer"
+        data-listing-id="{{ listing.pk }}"
+        data-listing-name="Apartamento en {{ listing.sector }}"
+        data-listing-sector="{{ listing.sector }}"
     >
         Ver publicación original ↗
     </a>
+    {% if meta_pixel_id or google_analytics_id %}
+        <script>
+            document.querySelectorAll(".listing-source-link").forEach(
+                (link) => {
+                    link.addEventListener("click", () => {
+                        const listingId = link.dataset.listingId;
+                        const listingName = link.dataset.listingName;
+                        const listingSector = link.dataset.listingSector;
+
+                        if (typeof window.fbq === "function") {
+                            window.fbq(
+                                "trackCustom",
+                                "SourceListingOpened",
+                                {
+                                    content_type: "property",
+                                    content_ids: [listingId],
+                                    content_name: listingName,
+                                    content_category: listingSector
+                                }
+                            );
+                        }
+
+                        if (typeof window.gtag === "function") {
+                            window.gtag("event", "select_item", {
+                                item_list_name: "property_detail",
+                                items: [
+                                    {
+                                        item_id: listingId,
+                                        item_name: listingName,
+                                        item_category: "Apartamento",
+                                        item_category2: listingSector,
+                                        quantity: 1
+                                    }
+                                ]
+                            });
+                        }
+                    });
+                }
+            );
+        </script>
+    {% endif %}
 </section>
 
 {% if meta_pixel_id %}

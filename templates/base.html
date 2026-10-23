@@ -445,32 +445,41 @@
             {{ favorite_event|json_script:"favorite-event-data" }}
 
             <script>
-                const favoriteEvent = JSON.parse(
-                    document.getElementById("favorite-event-data").textContent
-                );
+                (() => {
+                    const eventElement = document.getElementById(
+                        "favorite-event-data"
+                    );
 
-                if (typeof fbq === "function") {
-                    fbq("track", "AddToWishlist", {
-                        content_type: "property",
-                        content_ids: [String(favoriteEvent.listing_id)],
-                        content_name: favoriteEvent.name,
-                        content_category: favoriteEvent.sector
-                    });
-                }
+                    if (!eventElement) {
+                        return;
+                    }
 
-                if (typeof gtag === "function") {
-                    gtag("event", "add_to_wishlist", {
-                        items: [
-                            {
-                                item_id: String(favoriteEvent.listing_id),
-                                item_name: favoriteEvent.name,
-                                item_category: "Apartamento",
-                                item_category2: favoriteEvent.sector,
-                                quantity: 1
-                            }
-                        ]
-                    });
-                }
+                    const favoriteEvent = JSON.parse(eventElement.textContent);
+
+
+                    if (typeof window.fbq === "function") {
+                        window.fbq("track", "AddToWishlist", {
+                            content_type: "property",
+                            content_ids: [String(favoriteEvent.listing_id)],
+                            content_name: favoriteEvent.name,
+                            content_category: favoriteEvent.sector
+                        });
+                    }
+
+                    if (typeof window.gtag === "function") {
+                        window.gtag("event", "add_to_wishlist", {
+                            items: [
+                                {
+                                    item_id: String(favoriteEvent.listing_id),
+                                    item_name: favoriteEvent.name,
+                                    item_category: "Apartamento",
+                                    item_category2: favoriteEvent.sector,
+                                    quantity: 1
+                                }
+                            ]
+                        });
+                    }
+                })();
             </script>
         {% endif %}
 </body>

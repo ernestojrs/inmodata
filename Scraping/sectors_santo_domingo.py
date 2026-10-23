@@ -98,6 +98,8 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Cerros de Arroyo Hondo III",
     "Colinas del Seminario",
     "Colinas del Arroyo II",
+    "Costa Azul",
+    "Costa Verde",
     
 
 
