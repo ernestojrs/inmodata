@@ -26,25 +26,44 @@ class Command(BaseCommand):
         )
 
         listings = (
-            Listing.objects.filter(is_active=True).exclude(sector="")
+            Listing.objects.filter(
+                is_active=True,
+                property_type= Listing.PropertyType.APARTMENT,
+                operation_type__in=[
+                    Listing.OperationType.SALE,
+                    Listing.OperationType.RENT,
+
+                ],
+                currency=Listing.Currency.USD,
+                price__gt=0,
+                area_m2__gt=0,
+                ).exclude(sector="")
         )
 
-        prices_by_sector = defaultdict(list)
+        prices_by_market = defaultdict(list)
 
         for listing in listings:
             price_per_m2 = listing.price_per_m2
 
             if price_per_m2 is not None:
-                prices_by_sector[listing.sector.strip()].append(price_per_m2)
+                market_key = (
+                    listing.operation_type,
+                    listing.sector.strip(),
+                )
+
+                prices_by_market[market_key].append(
+                    price_per_m2
+                )
 
         created_count = 0
         updated_count = 0
 
-        for sector,prices_per_m2 in prices_by_sector.items():
+        for(operation_type,sector,),prices_per_m2 in prices_by_market.items():
             _, created = (
                 SectorMarketSnapshot.objects.update_or_create(
                     city = "Santo Domingo",
                     sector = sector,
+                    operation_type=operation_type,
                     snapshot_date = snapshot_date,
                     defaults = {
                         "listings_count": len(prices_per_m2),

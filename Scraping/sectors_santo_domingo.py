@@ -100,9 +100,12 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Colinas del Arroyo II",
     "Costa Azul",
     "Costa Verde",
-    
-
-
+    "Cuesta Hermosa II",
+    "Cuesta Hermosa III",
+    "Cuesta Hermosa I",
+    "Don Honorio",
+    "Don Bosco",
+    "El Cacique",
 
 )
 

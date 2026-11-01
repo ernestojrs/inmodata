@@ -1,28 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Valorar propiedad | InmoData{% endblock %}
+{% block title %}{{ valuation_page_title }} | InmoData{% endblock %}
+
 {% block meta_description %}
-Evalúa si el precio de una propiedad es justo comparándolo con apartamentos disponibles en el mismo sector.
+    {% if is_rental_valuation %}
+        Evalúa si un alquiler mensual está dentro del rango de apartamentos comparables en el mismo sector.
+    {% else %}
+        Evalúa si el precio de una propiedad es justo comparándolo con apartamentos disponibles en el mismo sector.
+    {% endif %}
 {% endblock %}
 
 {% block og_title %}
-¿El precio de una propiedad es justo? | InmoData
+    {{ valuation_page_title }} | InmoData
 {% endblock %}
 
 {% block og_description %}
-Ingresa el precio y el área de una propiedad para compararla con datos del mercado inmobiliario local.
+    {% if is_rental_valuation %}
+        Compara un alquiler mensual por metro cuadrado con datos inmobiliarios locales.
+    {% else %}
+        Ingresa el precio y el área de una propiedad para compararla con datos del mercado inmobiliario local.
+    {% endif %}
 {% endblock %}
 
 {% block content %}
 <section class="valuation-hero">
-    <p class="eyebrow">Evaluación de precio</p>
+    <p class="eyebrow">{{ valuation_eyebrow }}</p>
 
-    <h1>¿El precio es justo?</h1>
+    <h1>{{ valuation_heading }}</h1>
 
-    <p class="lead">
-        Compara el precio por metro cuadrado de una propiedad
-        con apartamentos disponibles en el mismo sector.
-    </p>
+    <p class="lead">{{ valuation_lead }}</p>
 
     <form method="get" class="valuation-form valuation-hero-form">
         <div>
@@ -43,7 +49,7 @@ Ingresa el precio y el área de una propiedad para compararla con datos del merc
         </div>
 
         <div>
-            <label for="price">Precio de venta (US$)</label>
+            <label for="price">{{ valuation_price_label }}</label>
 
             <input
                 type="number"
@@ -83,8 +89,27 @@ Ingresa el precio y el área de una propiedad para compararla con datos del merc
             >
         </div>
 
-        <button type="submit">Evaluar precio</button>
+        <button type="submit">{{ valuation_submit_label }}</button>
     </form>
+    {% if user.is_authenticated %}
+    <p>
+        {% if is_rental_valuation %}
+            <a
+                class="secondary-button"
+                href="{% url 'market:valuation' %}"
+            >
+                Valorar compra
+            </a>
+        {% else %}
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_valuation' %}"
+            >
+                Valorar alquiler
+            </a>
+        {% endif %}
+    </p>
+{% endif %}
 </section>
 
 {% if error %}
@@ -115,23 +140,41 @@ Ingresa el precio y el área de una propiedad para compararla con datos del merc
 
         <div class="valuation-result-metrics">
             <div>
-                <span>Precio ingresado por m²</span>
+                <span>
+                    {% if is_rental_valuation %}
+                        Alquiler mensual ingresado por m²
+                    {% else %}
+                        Precio ingresado por m²
+                    {% endif %}
+                </span>
                 <strong>
-                    US$ {{ result.entered_price_per_m2|floatformat:0 }}
+                    US$ {{ result.entered_price_per_m2|floatformat:0 }} {{ valuation_price_suffix }}
                 </strong>
             </div>
 
             <div>
-                <span>Precio de mercado por m²</span>
+                <span>
+                    {% if is_rental_valuation %}
+                        Alquiler mensual de mercado por m²
+                    {% else %}
+                        Precio de mercado por m²
+                    {% endif %}
+                </span>
                 <strong>
-                    US$ {{ result.market_price_per_m2|floatformat:0 }}
+                    US$ {{ result.market_price_per_m2|floatformat:0 }} {{ valuation_price_suffix }}
                 </strong>
             </div>
 
             <div>
-                <span>Precio estimado según mercado</span>
+                <span>
+                    {% if is_rental_valuation %}
+                        Alquiler mensual estimado según mercado
+                    {% else %}
+                        Precio estimado según mercado
+                    {% endif %}
+                </span>
                 <strong>
-                    US$ {{ result.estimated_market_price|floatformat:0 }}
+                    US$ {{ result.estimated_market_price|floatformat:0 }} {{ valuation_price_suffix }}
                 </strong>
             </div>
         </div>
@@ -178,11 +221,12 @@ Ingresa el precio y el área de una propiedad para compararla con datos del merc
 {% if result %}
     <script>
         if (typeof fbq === "function") {
-            fbq("trackCustom", "ValuationCompleted");
+            fbq("trackCustom", "{{ valuation_meta_event }}");
+
         }
 
         if (typeof gtag === "function") {
-            gtag("event", "valuation_completed");
+            gtag("event", "{{ valuation_ga_event }}");
         }
     </script>
 {% endif %}

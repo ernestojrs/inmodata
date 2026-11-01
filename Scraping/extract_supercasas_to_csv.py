@@ -118,55 +118,58 @@ def extract_listing(url, html):
             "La URL no corresponde a un apartamento."
         )
 
-    if not re.search(
-        r"\bVenta:\s*(?:US\$|RD\$)",
-        html,
-        flags=re.IGNORECASE,
-    ):
-        raise ValueError(
-            "La propiedad no está publicada como venta."
-        )
-
     listing_id_match = re.search(
-        r"/(\d+)/?$",
+          r"/(\d+)/?$",
         url,
     )
 
     if not listing_id_match:
         raise ValueError(
-            "No se pudo, obtener el id de la propiedad desde la URL"
+            "No se pudo obtener el ID de la propiedad desde la URL."
         )
 
-    price_match = extract_required_match(
-        r"venta: \s*(US\$|RD\$)\s*([\d,.]+)",
+    operation_match = extract_required_match(
+        r"\b(venta|alquiler):\s*(US\$|RD\$)\s*([\d,.]+)",
         html,
-        "precio de venta"
+        "tipo y precio de publicación",
     )
 
-    currency_symbol = price_match.group(1).upper()
-    price = decimal_from_text(price_match.group(2))
+    operation_label = operation_match.group(1).lower()
+
+    operation_type = {
+     "venta": "sale",
+        "alquiler": "rent",
+    }[operation_label]
+
+    currency_symbol = operation_match.group(2).upper()
+    price = decimal_from_text(operation_match.group(3))
 
     currency = {
         "US$": "USD",
         "RD$": "DOP",
     }.get(currency_symbol)
 
-    if not currency:
-        raise ValueError("Moneda no compatible")
 
     if not currency:
         raise ValueError("Moneda no compatible")
 
-    if (
-        currency == "USD"
-        and Decimal("100") <= price < Decimal("10000")
-    ):
-        price = price * Decimal("1000")
+    if operation_type == "sale":
+        if (
+            currency == "USD"
+            and Decimal("100") <= price < Decimal("10000")
+        ):
+            price = price * Decimal("1000")
 
-    if currency == "USD" and price < Decimal("10000"):
+        if currency == "USD" and price < Decimal("10000"):
+            raise ValueError(
+                "El precio encontrado es demasiado bajo para "
+                "un apartamento en venta. Se rechazó para revisión."
+            )
+
+    elif currency == "USD" and price < Decimal("50"):
         raise ValueError(
-        "El precio encontrado es demasiado bajo para "
-        "un apartamento en venta. Se rechazó para revisión."
+            "El alquiler encontrado es demasiado bajo "
+            "para revisión."
         )
 
     location_match = extract_required_match(
@@ -239,7 +242,7 @@ def extract_listing(url, html):
         ),
         "source_url": url,
         "property_type": "apartment",
-        "operation_type": "sale",
+        "operation_type": operation_type,
         "sector": sector,
         "city": "Santo Domingo",
         "price": str(price),
@@ -383,6 +386,7 @@ def main():
 
             print(
                 " OK: "
+                f"{listing['operation_type']} | "
                 f"{listing['sector']} | "
                 f"{listing['currency']} {listing['price']} | "
                 f"{listing['area_m2']} m²"

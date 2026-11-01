@@ -39,14 +39,11 @@ Consulta su análisis de mercado.
 {% endblock %}
 
 {% block content %}
-<p class="eyebrow">Análisis de propiedad</p>
+<p class="eyebrow">{{ listing_hero_eyebrow }}</p>
 
 <h1>Apartamento en {{ listing.sector }}</h1>
 
-<p class="lead">
-    Comparación del precio de esta propiedad con apartamentos activos
-    del mismo sector.
-</p>
+<p class="lead">{{ listing_hero_lead }}</p>
 
 {% if listing.is_stale %}
     <section class="card stale-card">
@@ -67,7 +64,7 @@ Consulta su análisis de mercado.
     <p class="eyebrow">Resumen de la propiedad</p>
 
     <p class="listing-summary-price">
-        {{ listing.currency }} {{ listing.price|floatformat:0 }}
+        {{ listing.currency }} {{ listing.price|floatformat:0 }}{{ listing_price_suffix }}
     </p>
 
     <div class="listing-facts">
@@ -77,9 +74,9 @@ Consulta su análisis de mercado.
         </div>
 
         <div>
-            <span>Precio por m²</span>
+            <span>{{ listing_price_per_m2_label }}</span>
             <strong>
-                {{ listing.currency }} {{ listing.price_per_m2|floatformat:0 }}
+                {{ listing.currency }} {{ listing.price_per_m2|floatformat:0 }}{{ listing_price_suffix }}
             </strong>
         </div>
 
@@ -121,20 +118,20 @@ Consulta su análisis de mercado.
 
         <p class="market-verdict-description">
             El análisis usa <strong>{{ analysis.comparables_count }}</strong>
-            propiedades comparables en {{ listing.sector }}.
+            {{ listing_comparables_label }} en {{ listing.sector }}.
         </p>
 
         <div class="market-verdict-metrics">
             <div>
-                <span>Precio publicado por m²</span>
+                <span>{{ listing_published_per_m2_label }}</span>
                 <strong>
                     {{ listing.currency }}
-                    {{ listing.price_per_m2|floatformat:0 }}
+                    {{ listing.price_per_m2|floatformat:0 }}{{ listing_price_suffix }}
                 </strong>
             </div>
 
             <div>
-                <span>Referencia de mercado por m²</span>
+                <span>{{ listing_market_per_m2_label }}</span>
                 <strong>
                     {{ listing.currency }}
                     {{ analysis.market_price_per_m2|floatformat:0 }}
@@ -209,12 +206,21 @@ Consulta su análisis de mercado.
                             {{ similar_listing.price_per_m2|floatformat:0 }}
                         </td>
                         <td>
-                            <a
-                                class="source-link"
-                                href="{% url 'listings:compare' %}?listing_1={{ listing.pk }}&listing_2={{ similar_listing.pk }}"
-                            >
-                                Comparar
-                            </a>
+                            {% if is_rental_listing %}
+                                <a
+                                    class="source-link"
+                                    href="{% url 'listings:detail' similar_listing.pk %}"
+                                >
+                                    Ver alquiler
+                                </a>
+                            {% else %}
+                                <a
+                                    class="source-link"
+                                    href="{% url 'listings:compare' %}?listing_1={{ listing.pk }}&listing_2={{ similar_listing.pk }}"
+                                >
+                                    Comparar
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
@@ -264,8 +270,8 @@ Consulta su análisis de mercado.
 {% endif %}
 
 <section class="listing-actions">
-    <a class="secondary-button" href="{% url 'listings:list' %}">
-        ← Volver a propiedades
+    <a class="secondary-button" href="{{ listing_catalog_url }}">
+    {{ listing_catalog_label }}
     </a>
 
         {% if user.is_authenticated %}

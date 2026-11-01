@@ -18,6 +18,7 @@ class Listing(models.Model):
 
     class OperationType(models.TextChoices):
         SALE = "sale","Venta"
+        RENT = "rent", "Alquiler mensual"
 
     class Currency(models.TextChoices):
         USD = "USD", "US Dollar"
@@ -109,7 +110,35 @@ class Favorite(models.Model):
     def __str__(self):
         return f"{self.user} saved {self.listing}"
 
-    
+class SavedSearch(models.Model):
+    user= models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_searches"
+    )
+
+    name = models.CharField(max_length=80)
+
+    query_string = models.CharField(max_length=1000)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+        constraints = [
+             models.UniqueConstraint(
+                fields=["user", "name"],
+                name="unique_user_saved_search_name",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} . {self.name}"
+
+
 
 class ListingPriceSnapshot(models.Model):
     listing = models.ForeignKey(
@@ -169,6 +198,12 @@ class SectorMarketSnapshot(models.Model):
     sector = models.CharField(
         max_length=100)
 
+    operation_type = models.CharField(
+        max_length=30,
+        choices=Listing.OperationType.choices,
+        default=Listing.OperationType.SALE,
+    )
+
     snapshot_date = models.DateField(
         default=timezone.localdate,
     )
@@ -183,11 +218,16 @@ class SectorMarketSnapshot(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-snapshot_date","sector"]
+        ordering = ["-snapshot_date","operation_type","sector"]
 
         constraints = [
             models.UniqueConstraint(
-                fields=["city", "sector", "snapshot_date"],
+                fields=[
+                    "city",
+                    "sector",
+                    "operation_type",
+                    "snapshot_date",
+                ],
                 name="unique_sector_snapshot_per_day",
             )
         ]

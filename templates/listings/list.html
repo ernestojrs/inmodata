@@ -1,28 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Propiedades | InmoData{% endblock %}
+{% block title %}{{ catalog_page_title }} | InmoData{% endblock %}
+
 {% block meta_description %}
-Explora apartamentos activos en venta, filtra por sector, precio, área y habitaciones en Santo Domingo.
+{{ catalog_meta_description }}
 {% endblock %}
 
 {% block og_title %}
-Propiedades en venta | InmoData
+{{ catalog_page_title }} | InmoData
 {% endblock %}
 
 {% block og_description %}
-Explora apartamentos en venta y compara precio, área y precio por metro cuadrado.
+{{ catalog_meta_description }}
 {% endblock %}
 
 {% block content %}
 <section class="property-search-hero">
     <div class="property-search-hero-content">
-        <p class="eyebrow">Apartamentos en venta</p>
+        <p class="eyebrow">{{ catalog_eyebrow }}</p>
 
-        <h1>Explorar propiedades</h1>
+        <h1>{{ catalog_heading }}</h1>
 
-        <p class="lead">
-            Compara precio, tamaño y precio por metro cuadrado.
-        </p>
+        <p class="lead">{{ catalog_lead }}</p>
 
         <form method="get" class="filter-form property-search-form">
 
@@ -61,12 +60,18 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
     </div>
 
     <div>
-        <label for="min_price">Precio mín. (US$)</label>
+        <label for="min_price">{{ catalog_price_label }}</label>
         <input type="number" name="min_price" id="min_price" min="0" step="0.01" value="{{ entered_min_price }}">
     </div>
 
     <div>
-        <label for="max_price">Precio máx. (US$)</label>
+        <label for="max_price">
+            {% if is_rental_catalog %}
+                Alquiler mensual máx. (US$)
+            {% else %}
+                Precio máx. (US$)
+            {% endif %}
+        </label>
         <input type="number" name="max_price" id="max_price" min="0" step="0.01" value="{{ entered_max_price }}">
     </div>
 
@@ -112,6 +117,61 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
 
     <button type="submit">Filtrar</button>
 </form>
+
+{% if user.is_authenticated %}
+    <p>
+        {% if is_rental_catalog %}
+            <a
+                class="secondary-button"
+                href="{% url 'listings:list' %}"
+            >
+                Ver apartamentos en venta
+            </a>
+        {% else %}
+            <a
+                class="secondary-button"
+                href="{% url 'listings:rentals' %}"
+            >
+                Explorar alquileres
+            </a>
+        {% endif %}
+    </p>
+{% endif %}
+
+{% if user.is_authenticated and allow_saved_search %}
+    <form
+        method="post"
+        action="{% url 'listings:save_search' %}"
+        class="saved-search-form"
+    >
+        {% csrf_token %}
+
+        <input type="hidden" name="q" value="{{ entered_query }}">
+        <input type="hidden" name="sector" value="{{ selected_sector }}">
+        <input type="hidden" name="bedrooms" value="{{ selected_bedrooms }}">
+        <input type="hidden" name="min_price" value="{{ entered_min_price }}">
+        <input type="hidden" name="max_price" value="{{ entered_max_price }}">
+        <input type="hidden" name="min_area_m2" value="{{ entered_min_area_m2 }}">
+        <input type="hidden" name="max_area_m2" value="{{ entered_max_area_m2 }}">
+        <input type="hidden" name="sort" value="{{ selected_sort }}">
+
+        <div>
+            <label for="{{ saved_search_form.name.id_for_label }}">
+                {{ saved_search_form.name.label }}
+            </label>
+
+            {{ saved_search_form.name }}
+
+            <small>
+                {{ saved_search_form.name.help_text }}
+            </small>
+        </div>
+
+        <button type="submit" class="secondary-button">
+            Guardar búsqueda
+        </button>
+    </form>
+{% endif %}
     </div>
 </section>
 
@@ -132,7 +192,7 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
         </div>
 
         {% if base_query %}
-            <a class="clear-filters" href="{% url 'listings:list' %}">
+            <a class="clear-filters" href="{{ catalog_url }}">
                 Limpiar filtros
             </a>
         {% endif %}
@@ -144,9 +204,15 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
         <thead>
             <tr>
                 <th>Sector</th>
-                <th>Precio</th>
+                <th>
+                    {% if is_rental_catalog %}
+                        Alquiler mensual
+                    {% else %}
+                        Precio
+                    {% endif %}
+                </th>
                 <th>Área</th>
-                <th>Precio por m²</th>
+                <th>{{ catalog_price_per_m2_label }}</th>
                 <th>Habitaciones</th>
                 <th>Baños</th>
                 <th>Estado</th>
@@ -157,7 +223,9 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
             {% for listing in page_obj %}
                 <tr>
                     <td>{{ listing.sector }}</td>
-                    <td>US$ {{ listing.price|floatformat:0 }}</td>
+                    <td>
+                        US$ {{ listing.price|floatformat:0 }}{{ catalog_price_suffix }}
+                    </td>
                     <td>{{ listing.area_m2|floatformat:0 }} m²</td>
                     <td>US$ {{ listing.calculated_price_per_m2|floatformat:0 }}</td>
                     <td>{{ listing.bedrooms|default:"—" }}</td>
@@ -225,7 +293,7 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
             </div>
 
             <p class="listing-mobile-price">
-                US$ {{ listing.price|floatformat:0 }}
+                US$ {{ listing.price|floatformat:0 }}{{ catalog_price_suffix }}
             </p>
 
             <div class="listing-mobile-metrics">
@@ -235,7 +303,7 @@ Explora apartamentos en venta y compara precio, área y precio por metro cuadrad
                 </div>
 
                 <div>
-                    <span>Precio por m²</span>
+                    <span>{{ catalog_price_per_m2_label }}</span>
                     <strong>US$ {{ listing.calculated_price_per_m2|floatformat:0 }}</strong>
                 </div>
 

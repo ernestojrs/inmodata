@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Mis búsquedas | InmoData{% endblock %}
+
+{% block meta_description %}
+Tus búsquedas guardadas de propiedades en InmoData.
+{% endblock %}
+
+{% block content %}
+<p class="eyebrow">Tu cuenta</p>
+
+<h1>Mis búsquedas</h1>
+
+<p class="lead">
+    Guarda filtros para volver a revisar el mercado rápidamente.
+</p>
+
+{% if saved_searches %}
+    <section class="saved-searches-list">
+        {% for saved_search in saved_searches %}
+            <article class="card saved-search-card">
+                <div>
+                    <h2>{{ saved_search.name }}</h2>
+
+                    <p>
+                        Última actualización:
+                        <strong>
+                            {{ saved_search.updated_at|date:"d/m/Y H:i" }}
+                        </strong>
+                    </p>
+                </div>
+
+                <div class="saved-search-actions">
+                    <a
+                        class="button"
+                        href="{% url 'listings:list' %}?{{ saved_search.query_string }}"
+                    >
+                        Abrir búsqueda
+                    </a>
+
+                    <form
+                        method="post"
+                        action="{% url 'listings:delete_saved_search' saved_search.pk %}"
+                        onsubmit="return confirm('¿Eliminar esta búsqueda guardada?');"
+                    >
+                        {% csrf_token %}
+
+                        <button type="submit" class="secondary-button">
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="card empty-state">
+        <h2>Aún no tienes búsquedas guardadas</h2>
+
+        <p>
+            Aplica filtros en Propiedades y usa “Guardar búsqueda”
+            para encontrarlas aquí.
+        </p>
+
+        <a class="button" href="{% url 'listings:list' %}">
+            Explorar propiedades
+        </a>
+    </section>
+{% endif %}
+{% endblock %}

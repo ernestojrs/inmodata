@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.db.models import DecimalField, F, ExpressionWrapper, Max, Q
-from .models import Listing, Favorite
+from .models import Listing, Favorite, SavedSearch
 from decimal import Decimal, InvalidOperation
 from statistics import mean, median
 from django.core.paginator import Paginator
@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from .forms import CsvImportForm
+from .forms import CsvImportForm, SavedSearchForm
 from .services import get_comparable_listings, MINIMUM_COMPARABLES
 from django.http import HttpResponse
 from django.utils import timezone
@@ -22,9 +22,21 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.contrib.auth.views import redirect_to_login
 
 
 # Create your views here.
+SAVED_SEARCH_FILTERS = (
+    "q",
+    "sector",
+    "bedrooms",
+    "min_price",
+    "max_price",
+    "min_area_m2",
+    "max_area_m2",
+    "sort",
+)
+
 
 def parse_optional_decimal(value):
     if not value:
@@ -45,7 +57,7 @@ def parse_optional_int(value):
 
 
 
-def listings_list(request):
+def listings_list(request,operation_type=Listing.OperationType.SALE):
     selected_sector = request.GET.get("sector", "")
     entered_query = request.GET.get("q", "").strip()
     selected_bedrooms = request.GET.get("bedrooms", "")
@@ -69,7 +81,7 @@ def listings_list(request):
     listings = Listing.objects.filter(
         is_active=True,
         property_type=Listing.PropertyType.APARTMENT,
-        operation_type=Listing.OperationType.SALE,
+        operation_type=operation_type,
         currency=Listing.Currency.USD,
         price__isnull=False,
         area_m2__isnull=False,
@@ -140,9 +152,19 @@ def listings_list(request):
         Listing.objects.filter(
             is_active=True,
             property_type=Listing.PropertyType.APARTMENT,
-            operation_type=Listing.OperationType.SALE,
+            operation_type=operation_type,
             currency=Listing.Currency.USD,
         ).values_list("sector", flat=True).distinct().order_by("sector")
+    )
+
+    is_rental_catalog = (
+        operation_type == Listing.OperationType.RENT
+    )
+
+    catalog_url = (
+        reverse("listings:rentals")
+        if is_rental_catalog
+        else reverse("listings:list")
     )
 
     context = {
@@ -160,9 +182,167 @@ def listings_list(request):
         "results_count": results_count,
         "favorite_listing_ids": favorite_listing_ids,
         "current_path": current_path,
+        "saved_search_form": SavedSearchForm(),
+                "is_rental_catalog": is_rental_catalog,
+        "catalog_url": catalog_url,
+        "catalog_page_title": (
+            "Apartamentos en alquiler"
+            if is_rental_catalog
+            else "Propiedades"
+        ),
+        "catalog_meta_description": (
+            "Explora apartamentos activos en alquiler mensual, "
+            "filtra por sector, precio, área y habitaciones "
+            "en Santo Domingo."
+            if is_rental_catalog
+            else (
+                "Explora apartamentos activos en venta, filtra "
+                "por sector, precio, área y habitaciones en "
+                "Santo Domingo."
+            )
+        ),
+        "catalog_eyebrow": (
+            "Apartamentos en alquiler"
+            if is_rental_catalog
+            else "Apartamentos en venta"
+        ),
+        "catalog_heading": (
+            "Explorar alquileres"
+            if is_rental_catalog
+            else "Explorar propiedades"
+        ),
+        "catalog_lead": (
+            "Compara alquiler mensual, tamaño y alquiler mensual "
+            "por metro cuadrado."
+            if is_rental_catalog
+            else (
+                "Compara precio, tamaño y precio por metro cuadrado."
+            )
+        ),
+        "catalog_price_label": (
+            "Alquiler mensual (US$)"
+            if is_rental_catalog
+            else "Precio mín. (US$)"
+        ),
+        "catalog_price_per_m2_label": (
+            "Alquiler mensual por m²"
+            if is_rental_catalog
+            else "Precio por m²"
+        ),
+        "catalog_price_suffix": (
+            " / mes"
+            if is_rental_catalog
+            else ""
+        ),
+        "allow_saved_search": not is_rental_catalog,
     }
     
     return render(request, "listings/list.html", context)
+
+@login_required
+def rentals_list(request):
+    return listings_list(
+        request,
+        operation_type=Listing.OperationType.RENT,
+    )
+
+@require_POST
+@login_required
+def save_search(request):
+    form = SavedSearchForm(request.POST)
+
+    if not form.is_valid():
+        messages.error(
+            request,
+            "Escribe un nombre válido para guardar la búsqueda.",
+        )
+
+        return redirect("listings:list")
+
+    query_parameters = request.POST.copy()
+
+    for key in list(query_parameters):
+        value = query_parameters.get(key,"").strip()
+
+        if key not in SAVED_SEARCH_FILTERS or not value:
+            query_parameters.pop(key)
+
+    meaningful_filters = (
+        "q",
+        "sector",
+        "bedrooms",
+        "min_price",
+        "max_price",
+        "min_area_m2",
+        "max_area_m2",
+    )
+
+    if not any(query_parameters.get(key) for key in meaningful_filters):
+        messages.error(
+            request,
+            "Selecciona al menos un filtro antes de guardar la búsqueda.",
+        )
+        return redirect("listings:list")
+
+    query_string = query_parameters.urlencode()
+
+    saved_search, created = SavedSearch.objects.update_or_create(
+        user=request.user,
+        name=form.cleaned_data["name"],
+
+        defaults={
+            "query_string": query_string,
+        },
+    )
+
+    if created:
+        messages.success(
+            request,
+            f'Búsqueda "{saved_search.name}" guardada.',
+        )
+    else:
+        messages.info(
+            request,
+            f'Búsqueda "{saved_search.name}" actualizada.',
+        )
+
+    return redirect(
+        f"{reverse('listings:list')}?{query_string}"
+    )
+
+@login_required
+def saved_searches(request):
+    saved_searches = SavedSearch.objects.filter(
+        user=request.user,
+    )
+
+    return render(
+        request,
+        "listings/saved_searches.html",
+        {
+            "saved_searches": saved_searches,
+        },
+    )
+
+@require_POST
+@login_required
+def delete_saved_search(request,pk):
+    saved_search = get_object_or_404(
+        SavedSearch,
+        pk=pk,
+        user=request.user,
+    )
+
+    saved_search_name = saved_search.name 
+    saved_search.delete()
+
+    messages.success(
+        request,
+        f'Búsqueda "{saved_search_name}" eliminada.',
+    )
+
+    return redirect("listings:saved_searches")
+
 
 def listing_detail(request, pk):
     listing = get_object_or_404(
@@ -170,6 +350,18 @@ def listing_detail(request, pk):
         pk=pk,
         is_active = True,
     )
+
+    is_rental_listing = (
+        listing.operation_type == Listing.OperationType.RENT
+    )
+
+    if (
+        is_rental_listing
+        and not request.user.is_authenticated
+    ):
+        return redirect_to_login(request.get_full_path())
+
+    
 
     is_favorite = False
 
@@ -185,6 +377,7 @@ def listing_detail(request, pk):
         target_bedrooms=listing.bedrooms or None,
         currency=listing.currency,
         exclude_listing_id=listing.pk,
+        operation_type=listing.operation_type,
     )
 
     comparable_prices_per_m2 = [
@@ -249,13 +442,25 @@ def listing_detail(request, pk):
         amount = newest.price - oldest.price
 
         if amount < 0:
-            label = "Precio reducido"
+            label = (
+                "Alquiler reducido"
+                if is_rental_listing
+                else "Precio reducido"
+            )
             label_class = "price-reduced"
         elif amount >0:
-            label = "Precio Aumentado"
+            label = (
+                "Alquiler aumentado"
+                if is_rental_listing
+                else "Precio aumentado"
+            )
             label_class = "price-increased"
         else:
-            label = "Precio sin cambios"
+            label = (
+                "Alquiler sin cambios"
+                if is_rental_listing
+                else "Precio sin cambios"
+            )
             label_class = "price-unchanged"
 
         percent = None
@@ -276,8 +481,10 @@ def listing_detail(request, pk):
         "@id": f"{request.build_absolute_uri()}#apartment",
         "name": f"Apartamento en {listing.sector}",
         "description": (
-            f"Apartamento en venta en {listing.sector}, {listing.city}. "
-            "Análisis de precio inmobiliario por InmoData."
+            f"Apartamento en "
+            f"{'alquiler mensual' if is_rental_listing else 'venta'} "
+            f"en {listing.sector}, {listing.city}. "
+            "Análisis de mercado inmobiliario por InmoData."
         ),
         "url": request.build_absolute_uri(),
         "dateModified": listing.updated_at.isoformat(),
@@ -332,6 +539,61 @@ def listing_detail(request, pk):
             "listing_schema_json": listing_schema_json,
             "is_favorite": is_favorite,
             "current_path": request.get_full_path(),
+            "is_rental_listing": is_rental_listing,
+            "listing_operation_label": (
+                "Alquiler mensual"
+                if is_rental_listing
+                else "Precio de venta"
+            ),
+            "listing_price_suffix": (
+                " / mes"
+                if is_rental_listing
+                else ""
+            ),
+            "listing_hero_eyebrow": (
+                "Análisis de alquiler"
+                if is_rental_listing
+                else "Análisis de propiedad"
+            ),
+            "listing_hero_lead": (
+                "Comparación del alquiler mensual de este apartamento "
+                "con alquileres activos del mismo sector."
+                if is_rental_listing
+                else (
+                    "Comparación del precio de esta propiedad con apartamentos "
+                    "activos del mismo sector."
+                )
+            ),
+            "listing_price_per_m2_label": (
+                "Alquiler mensual por m²"
+                if is_rental_listing
+                else "Precio por m²"
+            ),
+            "listing_published_per_m2_label": (
+                "Alquiler mensual publicado por m²"
+                if is_rental_listing
+                else "Precio publicado por m²"
+            ),
+            "listing_market_per_m2_label": (
+                "Alquiler mensual de mercado por m²"
+                if is_rental_listing
+                else "Referencia de mercado por m²"
+            ),
+            "listing_comparables_label": (
+                "alquileres comparables"
+                if is_rental_listing
+                else "propiedades comparables"
+            ),
+            "listing_catalog_url": (
+                reverse("listings:rentals")
+                if is_rental_listing
+                else reverse("listings:list")
+            ),
+            "listing_catalog_label": (
+                "← Volver a alquileres"
+                if is_rental_listing
+                else "← Volver a propiedades"
+            ),
         }
     )
 

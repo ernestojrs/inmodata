@@ -41,3 +41,15 @@ class CsvImportForm(forms.Form):
 
         return uploaded_file
 
+class SavedSearchForm(forms.Form):
+    name = forms.CharField(
+        max_length=80,
+        label="Nombre de la búsqueda",
+        help_text="Ej.: Naco, 2 habitaciones, hasta US$250,000",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Ej.: Apartamentos en Naco",
+            }
+        ),
+    )
+

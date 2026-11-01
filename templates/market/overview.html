@@ -1,28 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Mercado | InmoData{% endblock %}
+{% block title %}{{ market_page_title }} | InmoData{% endblock %}
+
 {% block meta_description %}
-Consulta precios promedio, precio por metro cuadrado y cobertura de apartamentos en venta por sector.
+{{ market_meta_description }}
 {% endblock %}
 
 {% block og_title %}
-Mercado inmobiliario por sector | InmoData
+{{ market_page_title }} | InmoData
 {% endblock %}
 
 {% block og_description %}
-Consulta datos inmobiliarios, precios promedio y actividad de apartamentos en venta por sector.
+{{ market_meta_description }}
 {% endblock %}
 
 {% block content %}
 <section class="market-overview-hero">
-    <p class="eyebrow">Datos de mercado</p>
+    <p class="eyebrow">{{ market_eyebrow }}</p>
 
-    <h1>Mercado inmobiliario</h1>
+    <h1>{{ market_heading }}</h1>
 
-    <p class="lead">
-        Explora precios promedio y actividad de apartamentos en venta
-        por sector en Santo Domingo.
-    </p>
+    <p class="lead">{{ market_lead }}</p>
 
     <form method="get" class="market-sort-form market-dashboard-sort">
         <label for="sort">Ordenar sectores por</label>
@@ -59,13 +57,46 @@ Consulta datos inmobiliarios, precios promedio y actividad de apartamentos en ve
 
         <button type="submit">Actualizar vista</button>
     </form>
+{% if user.is_authenticated %}
+    <div class="listing-actions">
+        {% if is_rental_market %}
+            <a
+                class="secondary-button"
+                href="{% url 'market:overview' %}"
+            >
+                Ver mercado de venta
+            </a>
+
+            <a
+                class="button"
+                href="{% url 'market:rental_valuation' %}"
+            >
+                Valorar un alquiler
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_yield' %}"
+            >
+                Calcular rentabilidad
+            </a>
+        {% else %}
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_overview' %}"
+            >
+                Ver mercado de alquileres
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
 </section>
 
 <section class="market-kpi-grid">
     <article class="market-kpi-card">
-        <span>Propiedades analizadas</span>
+        <span>{{ market_listings_label }}</span>
         <strong>{{ total_listings }}</strong>
-        <p>Apartamentos activos en venta.</p>
+        <p>{{ market_listings_description }}</p>
     </article>
 
     <article class="market-kpi-card">
@@ -97,8 +128,8 @@ Consulta datos inmobiliarios, precios promedio y actividad de apartamentos en ve
                 <tr>
                     <th>Sector</th>
                     <th>Propiedades</th>
-                    <th>Precio promedio</th>
-                    <th>Precio promedio por m²</th>
+                    <th>{{ market_average_label }}</th>
+                    <th>{{ market_average_per_m2_label }}</th>
                     <th>Confianza</th>
                 </tr>
             </thead>
@@ -108,7 +139,11 @@ Consulta datos inmobiliarios, precios promedio y actividad de apartamentos en ve
                         <td data-label="Sector">
                             <a
                                 class="source-link"
-                                href="{% url 'market:sector_detail' stat.sector %}"
+                                {% if is_rental_market %}
+                                    href="{% url 'market:rental_sector_detail' stat.sector %}"
+                                {% else %}
+                                    href="{% url 'market:sector_detail' stat.sector %}"
+                                {% endif %}
                             >
                                 {{ stat.sector }}
                             </a>
@@ -118,12 +153,12 @@ Consulta datos inmobiliarios, precios promedio y actividad de apartamentos en ve
                             {{ stat.listings_count }}
                         </td>
 
-                        <td data-label="Precio promedio">
-                            US$ {{ stat.average_price|floatformat:0 }}
+                        <td data-label="{{ market_average_label }}">
+                            US$ {{ stat.average_price|floatformat:0 }}{{ market_price_suffix }}
                         </td>
 
-                        <td data-label="Precio por m²">
-                            US$ {{ stat.average_price_per_m2|floatformat:0 }}
+                        <td data-label="{{ market_average_per_m2_label }}">
+                            US$ {{ stat.average_price_per_m2|floatformat:0 }}{{ market_price_suffix }}
                         </td>
 
                         <td data-label="Confianza">

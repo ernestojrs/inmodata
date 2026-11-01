@@ -253,6 +253,12 @@
                     >
                         Mis favoritos
                     </a>
+                    <a
+                        class="{% if request.resolver_match.url_name == 'saved_searches' %}is-active{% endif %}"
+                        href="{% url 'listings:saved_searches' %}"
+                    >
+                        Mis búsquedas
+                    </a>
                     <form
                         class="nav-logout-form"
                         method="post"
@@ -353,6 +359,12 @@
                                 href="{% url 'listings:favorites' %}"
                             >
                                 Mis favoritos
+                            </a>
+                            <a
+                                class="{% if request.resolver_match.url_name == 'saved_searches' %}is-active{% endif %}"
+                                href="{% url 'listings:saved_searches' %}"
+                            >
+                                Mis búsquedas
                             </a>
                         <form
                             class="nav-logout-form"

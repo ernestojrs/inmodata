@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Rentabilidad de alquiler | InmoData{% endblock %}
+
+{% block meta_description %}
+    Calcula una referencia de rentabilidad bruta comparando precio de compra
+    y alquiler mensual con datos del mismo sector.
+{% endblock %}
+
+{% block content %}
+<section class="valuation-hero">
+    <p class="eyebrow">Análisis para inversión</p>
+
+    <h1>¿Qué rentabilidad puede generar?</h1>
+
+    <p class="lead">
+        Compara tu precio de compra y alquiler mensual esperado con
+        apartamentos activos en venta y alquiler del mismo sector.
+    </p>
+
+    <form method="get" class="valuation-form valuation-hero-form">
+        <div>
+            <label for="sector">Sector</label>
+
+            <select name="sector" id="sector" required>
+                <option value="">Selecciona un sector</option>
+
+                {% for sector in sectors %}
+                    <option
+                        value="{{ sector }}"
+                        {% if sector == selected_sector %}selected{% endif %}
+                    >
+                        {{ sector }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="purchase_price">Precio de compra (US$)</label>
+
+            <input
+                type="number"
+                name="purchase_price"
+                id="purchase_price"
+                min="1"
+                step="0.01"
+                value="{{ entered_purchase_price }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="monthly_rent">Alquiler mensual esperado (US$)</label>
+
+            <input
+                type="number"
+                name="monthly_rent"
+                id="monthly_rent"
+                min="1"
+                step="0.01"
+                value="{{ entered_monthly_rent }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="area_m2">Área de construcción (m²)</label>
+
+            <input
+                type="number"
+                name="area_m2"
+                id="area_m2"
+                min="1"
+                step="0.01"
+                value="{{ entered_area_m2 }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label for="bedrooms">Habitaciones (opcional)</label>
+
+            <input
+                type="number"
+                name="bedrooms"
+                id="bedrooms"
+                min="0"
+                step="1"
+                value="{{ entered_bedrooms }}"
+            >
+        </div>
+
+        <button type="submit">Calcular rentabilidad</button>
+    </form>
+
+    <p>
+        <a
+            class="secondary-button"
+            href="{% url 'market:rental_overview' %}"
+        >
+            Ver mercado de alquileres
+        </a>
+    </p>
+</section>
+
+{% if error %}
+    <section class="card error-card">
+        <h2>No se pudo calcular la referencia</h2>
+        <p>{{ error }}</p>
+    </section>
+{% endif %}
+
+{% if result %}
+    <section class="valuation-result-card {{ result.label_class }}">
+        <div class="valuation-result-header">
+            <div>
+                <p class="eyebrow">Referencia de rentabilidad</p>
+                <h2>{{ result.label }}</h2>
+            </div>
+
+            <span class="valuation-result-badge">
+                {{ result.gross_yield_percent }}%
+            </span>
+        </div>
+
+        <p class="valuation-result-description">
+            Esta estimación usa
+            <strong>{{ result.sale_comparables_count }}</strong>
+            ventas y
+            <strong>{{ result.rental_comparables_count }}</strong>
+            alquileres comparables en {{ result.sector }}.
+        </p>
+
+        <div class="valuation-result-metrics">
+            <div>
+                <span>Tu rentabilidad bruta anual</span>
+                <strong>{{ result.gross_yield_percent }}%</strong>
+            </div>
+
+            <div>
+                <span>Referencia bruta del sector</span>
+                <strong>{{ result.market_gross_yield_percent }}%</strong>
+            </div>
+
+            <div>
+                <span>Recuperación bruta estimada</span>
+                <strong>{{ result.gross_payback_years }} años</strong>
+            </div>
+        </div>
+
+        <table class="valuation-summary-table">
+            <tbody>
+                <tr>
+                    <th>Precio de compra ingresado</th>
+                    <td>US$ {{ result.purchase_price|floatformat:0 }}</td>
+                </tr>
+
+                <tr>
+                    <th>Alquiler mensual ingresado</th>
+                    <td>US$ {{ result.monthly_rent|floatformat:0 }} / mes</td>
+                </tr>
+
+                <tr>
+                    <th>Precio de compra estimado por mercado</th>
+                    <td>US$ {{ result.market_purchase_price|floatformat:0 }}</td>
+                </tr>
+
+                <tr>
+                    <th>Alquiler mensual estimado por mercado</th>
+                    <td>
+                        US$ {{ result.market_monthly_rent|floatformat:0 }} / mes
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Diferencia frente a la referencia</th>
+                    <td>{{ result.difference_percent }}%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="confidence-note">{{ result.sale_note }}</p>
+        <p class="confidence-note">{{ result.rental_note }}</p>
+
+        <p class="sample-warning">
+            Referencia bruta y orientativa. No incluye inicial, financiamiento,
+            impuestos, mantenimiento, seguros, vacancia, administración ni
+            costos legales.
+        </p>
+    </section>
+
+    <script>
+        if (typeof fbq === "function") {
+            fbq("trackCustom", "RentalYieldCalculated");
+        }
+
+        if (typeof gtag === "function") {
+            gtag("event", "rental_yield_calculated");
+        }
+    </script>
+{% endif %}
+{% endblock %}

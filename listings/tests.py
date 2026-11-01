@@ -2,7 +2,13 @@ from django.test import TestCase
 from io import StringIO
 from decimal import Decimal
 from pathlib import Path
-from .models import Favorite, Listing, ListingPriceSnapshot, ImportRun
+from .models import (
+    Favorite,
+    ImportRun,
+    Listing,
+    ListingPriceSnapshot,
+    SavedSearch,
+)
 from tempfile import TemporaryDirectory
 from django.urls import reverse
 from django.core.management import call_command
@@ -12,6 +18,7 @@ from .services import get_comparable_listings
 from django.utils import timezone
 import csv
 import json
+from django.contrib.auth import get_user_model
 
 # Create your tests here.
 
@@ -790,4 +797,200 @@ class FavoritesViewTests(TestCase):
             favorite_event["sector"],
             "Naco",
         )
+
+class SavedSearchViewTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        user_model = get_user_model()
+
+        self.user = user_model.objects.create_user(
+            username="search-user",
+            email="search@example.com",
+            password="secure-password",
+        )
+
+        self.other_user = user_model.objects.create_user(
+            username="other-search-user",
+            email="other-search@example.com",
+            password="secure-password",
+        )
+
+    def test_anonymous_user_is_redirected_from_saved_searches(self):
+        response = self.client.get(
+            reverse("listings:saved_searches"),
+        )
+
+        self.assertRedirects(
+            response,
+            (
+                f"{reverse('accounts:login')}"
+                f"?next={reverse('listings:saved_searches')}"
+            ),
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_can_save_a_filtered_search(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("listings:save_search"),
+            {
+                "name": "Naco hasta US$250k",
+                "sector": "Naco",
+                "max_price": "250000",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        saved_search = SavedSearch.objects.get(
+            user=self.user,
+            name="Naco hasta US$250k",
+        )
+
+        self.assertEqual(
+            saved_search.query_string,
+            "sector=Naco&max_price=250000",
+        )
+
+    def test_user_only_sees_own_saved_searches(self):
+        SavedSearch.objects.create(
+            user=self.user,
+            name="Mi búsqueda",
+            query_string="sector=Naco",
+        )
+
+        SavedSearch.objects.create(
+            user=self.other_user,
+            name="Búsqueda privada",
+            query_string="sector=Piantini",
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:saved_searches"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Mi búsqueda")
+        self.assertNotContains(response, "Búsqueda privada")
+
+    def test_user_can_delete_own_saved_search(self):
+        saved_search = SavedSearch.objects.create(
+            user=self.user,
+            name="Para eliminar",
+            query_string="sector=Naco",
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse(
+                "listings:delete_saved_search",
+                args=[saved_search.pk],
+            ),
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("listings:saved_searches"),
+        )
+
+        self.assertFalse(
+            SavedSearch.objects.filter(pk=saved_search.pk).exists()
+        )
+
+    def test_user_cannot_delete_another_users_saved_search(self):
+        saved_search = SavedSearch.objects.create(
+            user=self.other_user,
+            name="No me pertenece",
+            query_string="sector=Piantini",
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse(
+                "listings:delete_saved_search",
+                args=[saved_search.pk],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        self.assertTrue(
+            SavedSearch.objects.filter(pk=saved_search.pk).exists()
+        )
+
+class RentalListingAccessTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="rental-detail-user",
+            email="rental-detail@example.com",
+            password="SecurePass123!",
+        )
+
+        self.rental_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="RENT-DETAIL-001",
+            source_url="https://example.com/rent-detail-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("1800.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+        self.sale_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="SALE-DETAIL-001",
+            source_url="https://example.com/sale-detail-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.SALE,
+            price=Decimal("250000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+    def test_anonymous_user_is_redirected_from_rental_detail(self):
+        detail_url = reverse(
+            "listings:detail",
+            args=[self.rental_listing.pk],
+        )
+
+        response = self.client.get(detail_url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={detail_url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_can_view_rental_detail(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse(
+                "listings:detail",
+                args=[self.rental_listing.pk],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Alquiler mensual")
+        self.assertContains(response, "← Volver a alquileres")
+
+    def test_anonymous_user_can_still_view_sale_detail(self):
+        response = self.client.get(
+            reverse(
+                "listings:detail",
+                args=[self.sale_listing.pk],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
 

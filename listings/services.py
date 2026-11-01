@@ -4,11 +4,11 @@ from .models import Listing
 MINIMUM_COMPARABLES = 3
 
 def get_comparable_listings(sector, target_area_m2, target_bedrooms=None,currency=Listing.Currency.USD,
-                            exclude_listing_id=None):
+                            exclude_listing_id=None,operation_type=Listing.OperationType.SALE):
     base_listings = Listing.objects.filter(
          is_active=True,
         property_type=Listing.PropertyType.APARTMENT,
-        operation_type=Listing.OperationType.SALE,
+        operation_type=operation_type,
         currency=currency,
         price__isnull=False,
         area_m2__isnull=False,
