@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Mi cuenta | InmoData{% endblock %}
+
+{% block meta_description %}
+Tu panel de InmoData con favoritos, búsquedas guardadas y accesos rápidos.
+{% endblock %}
+
+{% block content %}
+{% comment %}
+The dashboard aggregates only data owned by the signed-in user. It is a hub
+for existing account tools, not a second source of truth for listing data.
+{% endcomment %}
+
+<section class="account-dashboard-hero">
+    <p class="eyebrow">Mi cuenta</p>
+
+    <h1>Hola, {{ user.username }}</h1>
+
+    <p class="lead">
+        Revisa tus propiedades guardadas, alquileres y búsquedas favoritas.
+    </p>
+</section>
+
+<section class="account-dashboard-section">
+    <div class="account-dashboard-heading">
+        <div>
+            <p class="eyebrow">Favoritos activos</p>
+            <h2>Tu selección</h2>
+        </div>
+
+        <a
+            class="secondary-button"
+            href="{% url 'listings:favorites' %}"
+        >
+            Ver favoritos
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <a
+            class="card stat-card account-dashboard-stat-link"
+            href="{% url 'listings:favorites' %}"
+        >
+            <span>Todos los favoritos</span>
+            <strong class="stat-number">
+                {{ favorite_counts.total }}
+            </strong>
+        </a>
+
+        <a
+            class="card stat-card account-dashboard-stat-link"
+            href="{% url 'listings:favorites' %}?operation_type=sale"
+        >
+            <span>Propiedades en venta</span>
+            <strong class="stat-number">
+                {{ favorite_counts.sales }}
+            </strong>
+        </a>
+
+        <a
+            class="card stat-card account-dashboard-stat-link"
+            href="{% url 'listings:favorites' %}?operation_type=rent"
+        >
+            <span>Alquileres mensuales</span>
+            <strong class="stat-number">
+                {{ favorite_counts.rentals }}
+            </strong>
+        </a>
+    </div>
+
+    <article class="card account-dashboard-search-card">
+        <div>
+            <p class="eyebrow">Búsquedas guardadas</p>
+            <h2>{{ saved_search_counts.total }}</h2>
+            <p>
+                {{ saved_search_counts.sales }} de venta ·
+                {{ saved_search_counts.rentals }} de alquiler mensual
+            </p>
+        </div>
+
+        <a
+            class="button"
+            href="{% url 'listings:saved_searches' %}"
+        >
+            Ver mis búsquedas
+        </a>
+    </article>
+</section>
+
+<section class="account-dashboard-section">
+    <p class="eyebrow">Accesos rápidos</p>
+
+    <h2>Continúa explorando</h2>
+
+    <div class="account-dashboard-actions">
+        <a
+            class="card account-dashboard-action"
+            href="{% url 'listings:list' %}"
+        >
+            <strong>Explorar propiedades</strong>
+            <span>Ventas activas en Santo Domingo.</span>
+        </a>
+
+        <a
+            class="card account-dashboard-action"
+            href="{% url 'listings:rentals' %}"
+        >
+            <strong>Explorar alquileres</strong>
+            <span>Alquileres mensuales disponibles.</span>
+        </a>
+
+        <a
+            class="card account-dashboard-action"
+            href="{% url 'market:valuation' %}"
+        >
+            <strong>Valorar propiedad</strong>
+            <span>Compara un precio con su mercado.</span>
+        </a>
+
+        <a
+            class="card account-dashboard-action"
+            href="{% url 'market:rental_yield' %}"
+        >
+            <strong>Calcular rentabilidad</strong>
+            <span>Evalúa el potencial de una inversión.</span>
+        </a>
+    </div>
+</section>
+
+<section class="account-dashboard-section">
+    <div class="account-dashboard-recent-grid">
+        <article class="card">
+            <div class="account-dashboard-heading">
+                <div>
+                    <p class="eyebrow">Recientes</p>
+                    <h2>Favoritos guardados</h2>
+                </div>
+            </div>
+
+            {% if recent_favorites %}
+                <div class="account-dashboard-list">
+                    {% for favorite in recent_favorites %}
+                        <article class="account-dashboard-list-item">
+                            <div>
+                                <p class="eyebrow">
+                                    {% if favorite.listing.operation_type == "rent" %}
+                                        Alquiler mensual
+                                    {% else %}
+                                        Venta
+                                    {% endif %}
+                                </p>
+
+                                <h3>{{ favorite.listing.sector }}</h3>
+
+                                <p>
+                                    US$ {{ favorite.listing.price|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
+                                </p>
+                            </div>
+
+                            <a
+                                class="source-link"
+                                href="{% url 'listings:detail' favorite.listing.pk %}"
+                            >
+                                Ver
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aún no tienes favoritos guardados.</p>
+            {% endif %}
+        </article>
+
+        <article class="card">
+            <div class="account-dashboard-heading">
+                <div>
+                    <p class="eyebrow">Recientes</p>
+                    <h2>Búsquedas guardadas</h2>
+                </div>
+            </div>
+
+            {% if recent_saved_searches %}
+                <div class="account-dashboard-list">
+                    {% for saved_search in recent_saved_searches %}
+                        <article class="account-dashboard-list-item">
+                            <div>
+                                <h3>{{ saved_search.name }}</h3>
+
+                                <p>
+                                    Actualizada
+                                    {{ saved_search.updated_at|date:"d/m/Y" }}
+                                </p>
+                            </div>
+
+                            <a
+                                class="source-link"
+                                href="{% url 'listings:saved_searches' %}"
+                            >
+                                Ver
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aún no tienes búsquedas guardadas.</p>
+            {% endif %}
+        </article>
+    </div>
+</section>
+{% endblock %}

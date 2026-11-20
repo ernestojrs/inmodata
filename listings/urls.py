@@ -43,5 +43,17 @@ urlpatterns = [
         views.rentals_list,
         name="rentals",
     ),
+
+    path(
+        "alquileres/comparar/",
+        views.rental_compare_listings,
+        name="rental_compare",
+    ),
+
+    path(
+        "favoritos/comparar/",
+        views.compare_favorites,
+        name="compare_favorites",
+    ),
     
 ]

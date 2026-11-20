@@ -30,21 +30,33 @@
                 value="price_per_m2_low"
                 {% if selected_sort == "price_per_m2_low" %}selected{% endif %}
             >
-                Menor precio por m²
+                {% if is_rental_market %}
+                    Menor alquiler mensual por m²
+                {% else %}
+                    Menor precio por m²
+                {% endif %}
             </option>
 
             <option
                 value="price_per_m2_high"
                 {% if selected_sort == "price_per_m2_high" %}selected{% endif %}
             >
-                Mayor precio por m²
+                {% if is_rental_market %}
+                    Mayor alquiler mensual por m²
+                {% else %}
+                    Mayor precio por m²
+                {% endif %}
             </option>
 
             <option
                 value="most_listings"
                 {% if selected_sort == "most_listings" %}selected{% endif %}
             >
-                Más propiedades registradas
+                {% if is_rental_market %}
+                    Más alquileres registrados
+                {% else %}
+                    Más propiedades registradas
+                {% endif %}
             </option>
 
             <option
@@ -59,6 +71,11 @@
     </form>
 {% if user.is_authenticated %}
     <div class="listing-actions">
+        {% comment %}
+        These links compare sector-wide current data. They are different from
+        the individual property comparison tools in the platform.
+        {% endcomment %}
+
         {% if is_rental_market %}
             <a
                 class="secondary-button"
@@ -80,12 +97,47 @@
             >
                 Calcular rentabilidad
             </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_price_drops' %}"
+            >
+                Ver bajas de alquiler
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_opportunities' %}"
+            >
+                Ver oportunidades de alquiler
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'listings:rental_compare' %}"
+            >
+                Comparar alquileres
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_compare_sectors' %}"
+            >
+                Comparar sectores de alquiler
+            </a>
         {% else %}
             <a
                 class="secondary-button"
                 href="{% url 'market:rental_overview' %}"
             >
                 Ver mercado de alquileres
+            </a>
+
+            <a
+                class="secondary-button"
+                href="{% url 'market:compare_sectors' %}"
+            >
+                Comparar sectores de venta
             </a>
         {% endif %}
     </div>

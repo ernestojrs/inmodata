@@ -1,46 +1,94 @@
 {% extends "base.html" %}
 
-{% block title %}Oportunidades | InmoData{% endblock %}
+{% block title %}
+    {% if is_rental_opportunities %}
+        Oportunidades de alquiler
+    {% else %}
+        Oportunidades
+    {% endif %}
+    | InmoData
+{% endblock %}
+
 {% block meta_description %}
-Explora propiedades con precio por metro cuadrado por debajo de propiedades comparables en el mismo sector.
+    {% if is_rental_opportunities %}
+        Explora alquileres mensuales con valor por m² por debajo de
+        alquileres comparables en el mismo sector.
+    {% else %}
+        Explora propiedades con precio por metro cuadrado por debajo de
+        propiedades comparables en el mismo sector.
+    {% endif %}
 {% endblock %}
 
 {% block og_title %}
-Oportunidades inmobiliarias | InmoData
+    {% if is_rental_opportunities %}
+        Oportunidades de alquiler | InmoData
+    {% else %}
+        Oportunidades inmobiliarias | InmoData
+    {% endif %}
 {% endblock %}
 
 {% block og_description %}
-Encuentra propiedades que aparecen por debajo del precio de mercado local según datos disponibles.
+    {% if is_rental_opportunities %}
+        Encuentra alquileres mensuales que aparecen por debajo del mercado
+        local según los datos disponibles.
+    {% else %}
+        Encuentra propiedades que aparecen por debajo del precio de mercado
+        local según datos disponibles.
+    {% endif %}
 {% endblock %}
 
 {% block content %}
 <section class="opportunities-hero">
-    <p class="eyebrow">Análisis de mercado</p>
+    <p class="eyebrow">
+        {% if is_rental_opportunities %}
+            Análisis de alquileres
+        {% else %}
+            Análisis de mercado
+        {% endif %}
+    </p>
 
-    <h1>Oportunidades inmobiliarias</h1>
+    <h1>
+        {% if is_rental_opportunities %}
+            Alquileres por debajo del mercado
+        {% else %}
+            Oportunidades inmobiliarias
+        {% endif %}
+    </h1>
 
     <p class="lead">
-        Propiedades con un precio por m² al menos 10% por debajo
-        de propiedades comparables en el mismo sector.
+        {% if is_rental_opportunities %}
+            Alquileres mensuales con valor por m² al menos 10% por debajo de
+            alquileres comparables en el mismo sector.
+        {% else %}
+            Propiedades con un precio por m² al menos 10% por debajo de
+            propiedades comparables en el mismo sector.
+        {% endif %}
     </p>
 </section>
 
 <section class="opportunities-callout">
     <div>
-        <span>Oportunidades detectadas</span>
-
-        <strong>
-            {% if opportunities %}
-                {{ opportunities|length }}
+        <span>
+            {% if is_rental_opportunities %}
+                Alquileres destacados
             {% else %}
-                0
+                Oportunidades detectadas
             {% endif %}
-        </strong>
+        </span>
+
+        <strong>{{ opportunities|length }}</strong>
     </div>
 
     <p>
-        Una oportunidad es una señal basada en los datos disponibles.
-        Confirma siempre el estado físico, legal y comercial de la propiedad.
+        {% if is_rental_opportunities %}
+            Un alquiler por debajo del mercado es una señal basada en los
+            datos disponibles. Confirma condiciones, gastos incluidos,
+            ubicación y disponibilidad antes de decidir.
+        {% else %}
+            Una oportunidad es una señal basada en los datos disponibles.
+            Confirma siempre el estado físico, legal y comercial de la
+            propiedad.
+        {% endif %}
     </p>
 </section>
 
@@ -50,10 +98,33 @@ Encuentra propiedades que aparecen por debajo del precio de mercado local según
             <thead>
                 <tr>
                     <th>Sector</th>
-                    <th>Precio</th>
+
+                    <th>
+                        {% if is_rental_opportunities %}
+                            Alquiler mensual
+                        {% else %}
+                            Precio
+                        {% endif %}
+                    </th>
+
                     <th>Área</th>
-                    <th>Precio por m²</th>
-                    <th>Mercado por m²</th>
+
+                    <th>
+                        {% if is_rental_opportunities %}
+                            Alquiler mensual por m²
+                        {% else %}
+                            Precio por m²
+                        {% endif %}
+                    </th>
+
+                    <th>
+                        {% if is_rental_opportunities %}
+                            Mercado mensual por m²
+                        {% else %}
+                            Mercado por m²
+                        {% endif %}
+                    </th>
+
                     <th>Comparables</th>
                     <th>Diferencia</th>
                     <th></th>
@@ -67,20 +138,26 @@ Encuentra propiedades que aparecen por debajo del precio de mercado local según
                             {{ opportunity.listing.sector }}
                         </td>
 
-                        <td data-label="Precio">
-                            US$ {{ opportunity.listing.price|floatformat:0 }}
+                        <td
+                            data-label="{% if is_rental_opportunities %}Alquiler mensual{% else %}Precio{% endif %}"
+                        >
+                            US$ {{ opportunity.listing.price|floatformat:0 }}{% if is_rental_opportunities %} / mes{% endif %}
                         </td>
 
                         <td data-label="Área">
                             {{ opportunity.listing.area_m2|floatformat:0 }} m²
                         </td>
 
-                        <td data-label="Precio por m²">
-                            US$ {{ opportunity.listing.price_per_m2|floatformat:0 }}
+                        <td
+                            data-label="{% if is_rental_opportunities %}Alquiler mensual por m²{% else %}Precio por m²{% endif %}"
+                        >
+                            US$ {{ opportunity.listing.price_per_m2|floatformat:0 }} / m²{% if is_rental_opportunities %} al mes{% endif %}
                         </td>
 
-                        <td data-label="Mercado por m²">
-                            US$ {{ opportunity.market_price_per_m2|floatformat:0 }}
+                        <td
+                            data-label="{% if is_rental_opportunities %}Mercado mensual por m²{% else %}Mercado por m²{% endif %}"
+                        >
+                            US$ {{ opportunity.market_price_per_m2|floatformat:0 }} / m²{% if is_rental_opportunities %} al mes{% endif %}
                         </td>
 
                         <td data-label="Comparables">
@@ -106,12 +183,30 @@ Encuentra propiedades que aparecen por debajo del precio de mercado local según
     </div>
 {% else %}
     <section class="card">
-        <h2>Aún no hay oportunidades detectadas</h2>
+        <h2>
+            {% if is_rental_opportunities %}
+                Aún no hay alquileres destacados
+            {% else %}
+                Aún no hay oportunidades detectadas
+            {% endif %}
+        </h2>
 
         <p>
-            InmoData necesita al menos tres propiedades comparables
-            en un sector para identificar oportunidades con prudencia.
+            InmoData necesita al menos tres comparables en un sector para
+            identificar resultados con prudencia.
         </p>
     </section>
 {% endif %}
+
+<p>
+    {% if is_rental_opportunities %}
+        <a class="source-link" href="{% url 'market:rental_overview' %}">
+            Ver mercado de alquileres
+        </a>
+    {% else %}
+        <a class="source-link" href="{% url 'market:overview' %}">
+            Ver mercado de ventas
+        </a>
+    {% endif %}
+</p>
 {% endblock %}

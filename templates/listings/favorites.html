@@ -3,17 +3,63 @@
 {% block title %}Mis favoritos | InmoData{% endblock %}
 
 {% block meta_description %}
-Propiedades guardadas para comparar y analizar más tarde en InmoData.
+Propiedades y alquileres guardados para comparar y analizar más tarde en InmoData.
 {% endblock %}
 
 {% block content %}
+{% comment %}
+Favorites use the Listing operation type as the source of truth. The interface
+keeps sales and monthly rentals visually distinct without duplicating data.
+{% endcomment %}
+
 <p class="eyebrow">Cuenta</p>
 
 <h1>Mis favoritos</h1>
 
 <p class="lead">
-    Propiedades que guardaste para revisarlas y compararlas más adelante.
+    Propiedades y alquileres que guardaste para revisarlos más adelante.
 </p>
+
+<nav class="favorite-filter-tabs" aria-label="Filtrar favoritos">
+    <a
+        class="favorite-filter-tab {% if selected_operation_type == 'all' %}is-active{% endif %}"
+        href="{% url 'listings:favorites' %}"
+    >
+        Todos
+    </a>
+
+    <a
+        class="favorite-filter-tab {% if selected_operation_type == 'sale' %}is-active{% endif %}"
+        href="{% url 'listings:favorites' %}?operation_type=sale"
+    >
+        Venta
+    </a>
+
+    <a
+        class="favorite-filter-tab {% if selected_operation_type == 'rent' %}is-active{% endif %}"
+        href="{% url 'listings:favorites' %}?operation_type=rent"
+    >
+        Alquiler mensual
+    </a>
+</nav>
+
+{% if selected_operation_type != "all" %}
+    <section class="favorite-comparison-intro">
+        <p class="eyebrow">Comparación rápida</p>
+
+        <h2>Compara dos favoritos</h2>
+
+        <p>
+            Selecciona exactamente dos
+            {% if selected_operation_type == "rent" %}
+                alquileres
+            {% else %}
+                propiedades
+            {% endif %}
+            para ver su comparación completa.
+        </p>
+    </section>
+{% endif %}
 
 {% if favorites %}
     <div class="desktop-listings-table">
@@ -21,10 +67,14 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
             <thead>
                 <tr>
                     <th>Sector</th>
-                    <th>Precio</th>
+                    <th>Tipo</th>
+                    <th>Monto</th>
                     <th>Área</th>
-                    <th>Precio por m²</th>
+                    <th>Monto por m²</th>
                     <th>Guardada</th>
+                    {% if selected_operation_type != "all" %}
+                        <th>Comparar</th>
+                    {% endif %}
                     <th></th>
                 </tr>
             </thead>
@@ -35,7 +85,34 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                         <td>{{ favorite.listing.sector }}</td>
 
                         <td>
-                            US$ {{ favorite.listing.price|floatformat:0 }}
+                            <span
+                                class="favorite-operation-badge {% if favorite.listing.operation_type == 'rent' %}favorite-operation-badge--rental{% else %}favorite-operation-badge--sale{% endif %}"
+                            >
+                                {% if favorite.listing.operation_type == "rent" %}
+                                    Alquiler mensual
+                                {% else %}
+                                    Venta
+                                {% endif %}
+                            </span>
+                        </td>
+
+                        <td>
+                            US$ {{ favorite.listing.price|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
+
+                            {% comment %}
+                            This appears only when snapshots prove the price changed after saving.
+                            {% endcomment %}
+                            {% if favorite.price_change_since_saved %}
+                                <span
+                                    class="favorite-price-change {{ favorite.price_change_since_saved.css_class }}"
+                                >
+                                    {{ favorite.price_change_since_saved.label }}:
+                                    <strong>
+                                        US$ {{ favorite.price_change_since_saved.amount|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
+                                    </strong>
+                                    ({{ favorite.price_change_since_saved.percent }}%)
+                                </span>
+                            {% endif %}
                         </td>
 
                         <td>
@@ -43,12 +120,34 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                         </td>
 
                         <td>
-                            US$ {{ favorite.listing.price_per_m2|floatformat:0 }}
+                            US$ {{ favorite.listing.price_per_m2|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
                         </td>
 
                         <td>
                             {{ favorite.created_at|date:"d/m/Y" }}
                         </td>
+
+                        {% if selected_operation_type != "all" %}
+                            <td>
+                                {% comment %}
+                                The checkbox belongs to a separate form to avoid nesting it inside
+                                the existing POST form used to remove a favorite.
+                                {% endcomment %}
+                                <label
+                                    class="favorite-compare-checkbox"
+                                    for="desktop-favorite-{{ favorite.pk }}"
+                                >
+                                    <input
+                                        id="desktop-favorite-{{ favorite.pk }}"
+                                        type="checkbox"
+                                        name="favorite_id"
+                                        value="{{ favorite.pk }}"
+                                        form="favorite-compare-desktop"
+                                    >
+                                    <span>Seleccionar</span>
+                                </label>
+                            </td>
+                        {% endif %}
 
                         <td>
                             <a
@@ -66,7 +165,7 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                                 <input
                                     type="hidden"
                                     name="next"
-                                    value="{% url 'listings:favorites' %}"
+                                    value="{{ request.get_full_path }}"
                                 >
 
                                 <button class="secondary-button" type="submit">
@@ -78,6 +177,30 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                 {% endfor %}
             </tbody>
         </table>
+        {% if selected_operation_type != "all" %}
+            <form
+                id="favorite-compare-desktop"
+                method="get"
+                action="{% url 'listings:compare_favorites' %}"
+                class="favorite-comparison-form"
+            >
+                <input
+                    type="hidden"
+                    name="operation_type"
+                    value="{{ selected_operation_type }}"
+                >
+
+                <p>Selecciona dos favoritos y continúa al comparador.</p>
+
+                <button type="submit" class="button">
+                    {% if selected_operation_type == "rent" %}
+                        Comparar los dos alquileres
+                    {% else %}
+                        Comparar las dos propiedades
+                    {% endif %}
+                </button>
+            </form>
+        {% endif %}
     </div>
 
     <section class="mobile-listing-cards">
@@ -86,12 +209,32 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                 <div class="listing-mobile-top">
                     <p class="eyebrow">{{ favorite.listing.sector }}</p>
 
-                    <span class="fresh-badge">Guardada</span>
+                    <span
+                        class="favorite-operation-badge {% if favorite.listing.operation_type == 'rent' %}favorite-operation-badge--rental{% else %}favorite-operation-badge--sale{% endif %}"
+                    >
+                        {% if favorite.listing.operation_type == "rent" %}
+                            Alquiler mensual
+                        {% else %}
+                            Venta
+                        {% endif %}
+                    </span>
                 </div>
 
                 <p class="listing-mobile-price">
-                    US$ {{ favorite.listing.price|floatformat:0 }}
+                    US$ {{ favorite.listing.price|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
                 </p>
+
+                {% if favorite.price_change_since_saved %}
+                    <p
+                        class="favorite-price-change {{ favorite.price_change_since_saved.css_class }}"
+                    >
+                        {{ favorite.price_change_since_saved.label }}:
+                        <strong>
+                            US$ {{ favorite.price_change_since_saved.amount|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
+                        </strong>
+                        ({{ favorite.price_change_since_saved.percent }}%)
+                    </p>
+                {% endif %}
 
                 <div class="listing-mobile-metrics">
                     <div>
@@ -102,9 +245,9 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                     </div>
 
                     <div>
-                        <span>Precio por m²</span>
+                        <span>Monto por m²</span>
                         <strong>
-                            US$ {{ favorite.listing.price_per_m2|floatformat:0 }}
+                            US$ {{ favorite.listing.price_per_m2|floatformat:0 }}{% if favorite.listing.operation_type == "rent" %} / mes{% endif %}
                         </strong>
                     </div>
 
@@ -123,6 +266,22 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                     </div>
                 </div>
 
+                {% if selected_operation_type != "all" %}
+                    <label
+                        class="favorite-compare-checkbox favorite-compare-checkbox--mobile"
+                        for="mobile-favorite-{{ favorite.pk }}"
+                    >
+                        <input
+                            id="mobile-favorite-{{ favorite.pk }}"
+                            type="checkbox"
+                            name="favorite_id"
+                            value="{{ favorite.pk }}"
+                            form="favorite-compare-mobile"
+                        >
+                        <span>Seleccionar para comparar</span>
+                    </label>
+                {% endif %}
+
                 <a
                     class="button listing-mobile-button"
                     href="{% url 'listings:detail' favorite.listing.pk %}"
@@ -138,7 +297,7 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                     <input
                         type="hidden"
                         name="next"
-                        value="{% url 'listings:favorites' %}"
+                        value="{{ request.get_full_path }}"
                     >
 
                     <button
@@ -150,21 +309,51 @@ Propiedades guardadas para comparar y analizar más tarde en InmoData.
                 </form>
             </article>
         {% endfor %}
+
+        {% if selected_operation_type != "all" %}
+            <form
+                id="favorite-compare-mobile"
+                method="get"
+                action="{% url 'listings:compare_favorites' %}"
+                class="favorite-comparison-form"
+            >
+                <input
+                    type="hidden"
+                    name="operation_type"
+                    value="{{ selected_operation_type }}"
+                >
+
+                <p>Selecciona exactamente dos favoritos.</p>
+
+                <button type="submit" class="button">
+                    Comparar seleccionados
+                </button>
+            </form>
+        {% endif %}
     </section>
 {% else %}
-    <section class="card">
-        <p class="eyebrow">Aún no has guardado propiedades</p>
-
-        <h2>Encuentra una propiedad que te interese</h2>
-
-        <p>
-            Explora el mercado y usa el botón “Guardar” para reunir aquí las
-            propiedades que quieras revisar después.
-        </p>
-
-        <a class="button" href="{% url 'listings:list' %}">
-            Explorar propiedades
-        </a>
+    <section class="card empty-state">
+        {% if selected_operation_type == "rent" %}
+            <p class="eyebrow">Aún no has guardado alquileres</p>
+            <h2>Encuentra un alquiler que te interese</h2>
+            <p>
+                Explora apartamentos en alquiler y usa “Guardar” para
+                revisarlos aquí más tarde.
+            </p>
+            <a class="button" href="{% url 'listings:rentals' %}">
+                Explorar alquileres
+            </a>
+        {% else %}
+            <p class="eyebrow">Aún no has guardado propiedades</p>
+            <h2>Encuentra una propiedad que te interese</h2>
+            <p>
+                Explora el mercado y usa “Guardar” para reunir aquí las
+                propiedades que quieras revisar después.
+            </p>
+            <a class="button" href="{% url 'listings:list' %}">
+                Explorar propiedades
+            </a>
+        {% endif %}
     </section>
 {% endif %}
 {% endblock %}

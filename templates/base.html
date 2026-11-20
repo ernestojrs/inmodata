@@ -248,16 +248,10 @@
                 {% if user.is_authenticated %}
 
                     <a
-                        class="{% if request.resolver_match.url_name == 'favorites' %}is-active{% endif %}"
-                        href="{% url 'listings:favorites' %}"
+                        class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}"
+                        href="{% url 'accounts:dashboard' %}"
                     >
-                        Mis favoritos
-                    </a>
-                    <a
-                        class="{% if request.resolver_match.url_name == 'saved_searches' %}is-active{% endif %}"
-                        href="{% url 'listings:saved_searches' %}"
-                    >
-                        Mis búsquedas
+                        Mi cuenta
                     </a>
                     <form
                         class="nav-logout-form"
@@ -355,16 +349,10 @@
 
                     {% if user.is_authenticated %}
                             <a
-                                class="{% if request.resolver_match.url_name == 'favorites' %}is-active{% endif %}"
-                                href="{% url 'listings:favorites' %}"
+                                class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}"
+                                href="{% url 'accounts:dashboard' %}"
                             >
-                                Mis favoritos
-                            </a>
-                            <a
-                                class="{% if request.resolver_match.url_name == 'saved_searches' %}is-active{% endif %}"
-                                href="{% url 'listings:saved_searches' %}"
-                            >
-                                Mis búsquedas
+                                Mi cuenta
                             </a>
                         <form
                             class="nav-logout-form"

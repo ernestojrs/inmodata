@@ -76,4 +76,10 @@ urlpatterns = [
         ),
         name="logout",
     ),
+
+    path(
+        "panel/",
+        views.account_dashboard,
+        name="dashboard",
+    ),
 ]

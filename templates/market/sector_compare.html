@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if is_rental_sector_comparison %}
+        Comparar sectores de alquiler
+    {% else %}
+        Comparar sectores de venta
+    {% endif %}
+    | InmoData
+{% endblock %}
+
+{% block analytics_events %}
+    {% if comparison %}
+        {% comment %}
+        Track only completed, valid member comparisons. The selected sectors
+        and operation type are market data, not personal user information.
+        {% endcomment %}
+        <script>
+            if (typeof window.fbq === "function") {
+                window.fbq(
+                    "trackCustom",
+                    "{% if is_rental_sector_comparison %}RentalSectorComparisonCompleted{% else %}SectorComparisonCompleted{% endif %}",
+                    {
+                        content_type: "market_sector",
+                        content_category: "{% if is_rental_sector_comparison %}rent{% else %}sale{% endif %}",
+                        sector_1: "{{ first_sector_metrics.sector|escapejs }}",
+                        sector_2: "{{ second_sector_metrics.sector|escapejs }}"
+                    }
+                );
+            }
+
+            if (typeof window.gtag === "function") {
+                window.gtag(
+                    "event",
+                    "{% if is_rental_sector_comparison %}rental_sector_comparison_completed{% else %}sector_comparison_completed{% endif %}",
+                    {
+                        comparison_type: "sector",
+                        market_operation: "{% if is_rental_sector_comparison %}rent{% else %}sale{% endif %}",
+                        sector_1: "{{ first_sector_metrics.sector|escapejs }}",
+                        sector_2: "{{ second_sector_metrics.sector|escapejs }}"
+                    }
+                );
+            }
+        </script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{% comment %}
+This member-only page compares current active USD apartment data.
+The same template supports sale and monthly-rental comparisons.
+{% endcomment %}
+
+<section class="comparison-hero">
+    <p class="eyebrow">
+        {% if is_rental_sector_comparison %}
+            Comparación de alquileres
+        {% else %}
+            Comparación de mercado
+        {% endif %}
+    </p>
+
+    <h1>
+        {% if is_rental_sector_comparison %}
+            Compara dos sectores de alquiler
+        {% else %}
+            Compara dos sectores de venta
+        {% endif %}
+    </h1>
+
+    <p class="lead">
+        Compara actividad, precio promedio y valor mediano por m²
+        usando apartamentos activos disponibles hoy.
+    </p>
+
+    <form method="get" class="filter-form comparison-form">
+        <div>
+            <label for="sector_1">Primer sector</label>
+
+            <select name="sector_1" id="sector_1" required>
+                <option value="">Selecciona un sector</option>
+
+                {% for sector in available_sectors %}
+                    <option
+                        value="{{ sector }}"
+                        {% if selected_sector_1 == sector %}selected{% endif %}
+                    >
+                        {{ sector }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="sector_2">Segundo sector</label>
+
+            <select name="sector_2" id="sector_2" required>
+                <option value="">Selecciona un sector</option>
+
+                {% for sector in available_sectors %}
+                    <option
+                        value="{{ sector }}"
+                        {% if selected_sector_2 == sector %}selected{% endif %}
+                    >
+                        {{ sector }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit">Comparar sectores</button>
+    </form>
+</section>
+
+{% if error %}
+    <section class="card error-card">
+        <h2>No se pudo comparar</h2>
+        <p>{{ error }}</p>
+    </section>
+{% endif %}
+
+{% if first_sector_metrics and second_sector_metrics %}
+    {% if comparison %}
+        <section class="comparison-verdict-card">
+            <div class="comparison-verdict-header">
+                <div>
+                    <p class="eyebrow">Resultado de la comparación</p>
+                    <h2>{{ comparison.label }}</h2>
+                </div>
+
+                {% if comparison.lower_median_sector %}
+                    <span class="comparison-verdict-badge">
+                        {{ comparison.difference_percent }}%
+                    </span>
+                {% endif %}
+            </div>
+
+            <p class="confidence-note">
+                Un menor valor mediano por m² no garantiza una mejor decisión.
+                Considera ubicación, condición, amenidades y cobertura de datos.
+            </p>
+        </section>
+    {% endif %}
+
+    <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Métrica</th>
+                    <th>{{ first_sector_metrics.sector }}</th>
+                    <th>{{ second_sector_metrics.sector }}</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <th>Propiedades analizadas</th>
+                    <td>{{ first_sector_metrics.listings_count }}</td>
+                    <td>{{ second_sector_metrics.listings_count }}</td>
+                </tr>
+
+                <tr>
+                    <th>
+                        {% if is_rental_sector_comparison %}
+                            Alquiler mensual promedio
+                        {% else %}
+                            Precio promedio
+                        {% endif %}
+                    </th>
+                    <td>
+                        US$ {{ first_sector_metrics.average_price|floatformat:0 }}
+                        {% if is_rental_sector_comparison %}/ mes{% endif %}
+                    </td>
+                    <td>
+                        US$ {{ second_sector_metrics.average_price|floatformat:0 }}
+                        {% if is_rental_sector_comparison %}/ mes{% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>
+                        {% if is_rental_sector_comparison %}
+                            Alquiler mensual mediano por m²
+                        {% else %}
+                            Precio mediano por m²
+                        {% endif %}
+                    </th>
+                    <td class="{% if comparison.lower_median_sector == first_sector_metrics.sector %}comparison-winner{% endif %}">
+                        US$ {{ first_sector_metrics.median_price_per_m2|floatformat:0 }}
+                        / m²{% if is_rental_sector_comparison %} al mes{% endif %}
+                    </td>
+                    <td class="{% if comparison.lower_median_sector == second_sector_metrics.sector %}comparison-winner{% endif %}">
+                        US$ {{ second_sector_metrics.median_price_per_m2|floatformat:0 }}
+                        / m²{% if is_rental_sector_comparison %} al mes{% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>
+                        {% if is_rental_sector_comparison %}
+                            Menor alquiler mensual por m²
+                        {% else %}
+                            Menor precio por m²
+                        {% endif %}
+                    </th>
+                    <td>
+                        US$ {{ first_sector_metrics.lowest_price_per_m2|floatformat:0 }}
+                        / m²{% if is_rental_sector_comparison %} al mes{% endif %}
+                    </td>
+                    <td>
+                        US$ {{ second_sector_metrics.lowest_price_per_m2|floatformat:0 }}
+                        / m²{% if is_rental_sector_comparison %} al mes{% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>
+                        {% if is_rental_sector_comparison %}
+                            Mayor alquiler mensual por m²
+                        {% else %}
+                            Mayor precio por m²
+                        {% endif %}
+                    </th>
+                    <td>
+                        US$ {{ first_sector_metrics.highest_price_per_m2|floatformat:0 }}
+                        / m²{% if is_rental_sector_comparison %} al mes{% endif %}
+                    </td>
+                    <td>
+                        US$ {{ second_sector_metrics.highest_price_per_m2|floatformat:0 }}
+                        / m²{% if is_rental_sector_comparison %} al mes{% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Última actualización</th>
+                    <td>{{ first_sector_metrics.last_updated|date:"d/m/Y H:i" }}</td>
+                    <td>{{ second_sector_metrics.last_updated|date:"d/m/Y H:i" }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    {% if first_sector_metrics.sample_is_small or second_sector_metrics.sample_is_small %}
+        <p class="sample-warning">
+            Uno de los sectores tiene menos de cinco propiedades activas.
+            La comparación es orientativa.
+        </p>
+    {% endif %}
+{% endif %}
+
+
+{% endblock %}

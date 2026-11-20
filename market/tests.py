@@ -439,6 +439,34 @@ class RentalMarketOverviewTests(TestCase):
         self.assertNotContains(response, "250000")
         self.assertContains(response, "Valorar un alquiler")
         self.assertContains(response, "Calcular rentabilidad")
+        self.assertContains(response, "Ver bajas de alquiler")
+        self.assertContains(
+            response,
+            reverse("market:rental_price_drops"),
+        )
+        self.assertContains(response, "Comparar alquileres")
+        self.assertContains(
+            response,
+            reverse("listings:rental_compare"),
+        )
+
+        self.assertContains(
+            response,
+            "Ver oportunidades de alquiler",
+        )
+        self.assertContains(
+            response,
+            reverse("market:rental_opportunities"),
+        )
+
+        self.assertContains(
+            response,
+            "Menor alquiler mensual por m²",
+        )
+        self.assertContains(
+            response,
+            "Más alquileres registrados",
+        )
 
 class RentalValuationViewTests(TestCase):
     def setUp(self):
@@ -610,6 +638,738 @@ class RentalYieldViewTests(TestCase):
             Decimal("0.00"),
         )
 
-        
+
+class RentalSectorDetailViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="rental-sector-user",
+            email="rental-sector@example.com",
+            password="SecurePass123!",
+        )
+
+        for listing_id, price in (
+            ("RENT-SECTOR-NACO-001", "900.00"),
+            ("RENT-SECTOR-NACO-002", "1000.00"),
+            ("RENT-SECTOR-NACO-003", "1100.00"),
+        ):
+            Listing.objects.create(
+                source=Listing.Source.MANUAL,
+                source_listing_id=listing_id,
+                source_url=f"https://example.com/{listing_id}",
+                sector="Naco",
+                city="Santo Domingo",
+                operation_type=Listing.OperationType.RENT,
+                price=Decimal(price),
+                area_m2=Decimal("100.00"),
+                bedrooms=2,
+            )
+
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="SALE-SECTOR-NACO-001",
+            source_url="https://example.com/sale-sector-naco-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.SALE,
+            price=Decimal("300000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=3,
+        )
+
+        SectorMarketSnapshot.objects.create(
+            city="Santo Domingo",
+            sector="Naco",
+            operation_type=Listing.OperationType.RENT,
+            snapshot_date=date(2026, 10, 12),
+            listings_count=3,
+            median_price_per_m2=Decimal("9.00"),
+        )
+
+        SectorMarketSnapshot.objects.create(
+            city="Santo Domingo",
+            sector="Naco",
+            operation_type=Listing.OperationType.RENT,
+            snapshot_date=date(2026, 10, 13),
+            listings_count=3,
+            median_price_per_m2=Decimal("10.00"),
+        )
+
+        SectorMarketSnapshot.objects.create(
+            city="Santo Domingo",
+            sector="Naco",
+            operation_type=Listing.OperationType.SALE,
+            snapshot_date=date(2026, 10, 14),
+            listings_count=1,
+            median_price_per_m2=Decimal("3000.00"),
+        )
+
+    def test_anonymous_user_is_redirected_from_rental_sector_report(self):
+        url = reverse(
+            "market:rental_sector_detail",
+            args=["Naco"],
+        )
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_sees_rental_sector_metrics_only(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse(
+                "market:rental_sector_detail",
+                args=["Naco"],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Alquileres en Naco")
+        self.assertContains(response, "Alquiler mensual promedio")
+        self.assertContains(
+            response,
+            "Alquiler mensual mediano por m²",
+        )
+        self.assertContains(
+            response,
+            "Menor alquiler mensual por m²",
+        )
+        self.assertContains(
+            response,
+            "Mayor alquiler mensual por m²",
+        )
+
+        self.assertEqual(response.context["listings_count"], 3)
+        self.assertEqual(
+            response.context["average_price"],
+            Decimal("1000.00"),
+        )
+        self.assertEqual(
+            response.context["median_price_per_m2"],
+            Decimal("10.00"),
+        )
+        self.assertEqual(
+            response.context["lowest_price_per_m2"],
+            Decimal("9.00"),
+        )
+        self.assertEqual(
+            response.context["highest_price_per_m2"],
+            Decimal("11.00"),
+        )
+        self.assertEqual(
+            response.context["sector_trend"]["difference_percent"],
+            Decimal("11.11"),
+        )
+
+        self.assertNotContains(response, "300000")
+
+
+class RentalPriceDropsViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="rental-drops-user",
+            email="rental-drops@example.com",
+            password="SecurePass123!",
+        )
+
+        self.rental_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="RENT-DROP-001",
+            source_url="https://example.com/rent-drop-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("1000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+        ListingPriceSnapshot.objects.create(
+            listing=self.rental_listing,
+            price=Decimal("1200.00"),
+            currency=Listing.Currency.USD,
+        )
+
+        ListingPriceSnapshot.objects.create(
+            listing=self.rental_listing,
+            price=Decimal("1000.00"),
+            currency=Listing.Currency.USD,
+        )
+
+        sale_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="SALE-DROP-001",
+            source_url="https://example.com/sale-drop-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.SALE,
+            price=Decimal("250000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+        ListingPriceSnapshot.objects.create(
+            listing=sale_listing,
+            price=Decimal("300000.00"),
+            currency=Listing.Currency.USD,
+        )
+
+        ListingPriceSnapshot.objects.create(
+            listing=sale_listing,
+            price=Decimal("250000.00"),
+            currency=Listing.Currency.USD,
+        )
+
+    def test_anonymous_user_is_redirected_from_rental_price_drops(self):
+        url = reverse("market:rental_price_drops")
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_sees_rental_reductions_only(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:rental_price_drops"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response.context["is_rental_price_drops"]
+        )
+        self.assertContains(
+            response,
+            "Alquileres con bajas mensuales",
+        )
+        self.assertContains(response, "Alquiler anterior")
+        self.assertContains(response, "Alquiler actual")
+
+        drops = response.context["price_drops"]
+
+        self.assertEqual(len(drops), 1)
+        self.assertEqual(
+            drops[0]["listing"],
+            self.rental_listing,
+        )
+        self.assertEqual(
+            drops[0]["amount"],
+            Decimal("200.00"),
+        )
+        self.assertEqual(
+            drops[0]["percent"],
+            Decimal("16.67"),
+        )
+
+        self.assertNotContains(response, "250000")
+
+
+class RentalOpportunitiesViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="rental-opportunities-user",
+            email="rental-opportunities@example.com",
+            password="SecurePass123!",
+        )
+
+        self.below_market_rental = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="RENT-OPPORTUNITY-001",
+            source_url="https://example.com/rent-opportunity-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("900.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+        for listing_id, price in (
+            ("RENT-OPPORTUNITY-002", "1000.00"),
+            ("RENT-OPPORTUNITY-003", "1100.00"),
+            ("RENT-OPPORTUNITY-004", "1200.00"),
+        ):
+            Listing.objects.create(
+                source=Listing.Source.MANUAL,
+                source_listing_id=listing_id,
+                source_url=f"https://example.com/{listing_id}",
+                sector="Naco",
+                city="Santo Domingo",
+                operation_type=Listing.OperationType.RENT,
+                price=Decimal(price),
+                area_m2=Decimal("100.00"),
+                bedrooms=2,
+            )
+
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="SALE-OPPORTUNITY-001",
+            source_url="https://example.com/sale-opportunity-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.SALE,
+            price=Decimal("250000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+    def test_anonymous_user_is_redirected_from_rental_opportunities(self):
+        url = reverse("market:rental_opportunities")
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_sees_below_market_rentals_only(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:rental_opportunities"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response.context["is_rental_opportunities"]
+        )
+        self.assertContains(
+            response,
+            "Alquileres por debajo del mercado",
+        )
+        self.assertContains(
+            response,
+            "Alquiler mensual por m²",
+        )
+
+        opportunities = response.context["opportunities"]
+
+        self.assertEqual(len(opportunities), 1)
+        self.assertEqual(
+            opportunities[0]["listing"],
+            self.below_market_rental,
+        )
+        self.assertEqual(
+            opportunities[0]["market_price_per_m2"],
+            Decimal("11.00"),
+        )
+        self.assertEqual(
+            opportunities[0]["difference_percent"],
+            Decimal("-18.18"),
+        )
+        self.assertEqual(
+            opportunities[0]["comparables_count"],
+            3,
+        )
+
+        self.assertNotContains(response, "250000")
+
+class SectorBenchmarkDisplayTests(TestCase):
+    """Protect the current sector-versus-city values shown to members."""
+
+    def setUp(self):
+        """Create distinct Naco and citywide price-per-square-meter medians."""
+        self.user = get_user_model().objects.create_user(
+            username="benchmark-user",
+            password="SecurePass123!",
+        )
+
+        Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="BENCHMARK-NACO-001",
+            source_url="https://example.com/benchmark-naco-001",
+            sector="Naco",
+            city="Santo Domingo",
+            price=Decimal("200000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+        for number in range(1, 4):
+            Listing.objects.create(
+                source=Listing.Source.MANUAL,
+                source_listing_id=f"BENCHMARK-PIANTINI-{number}",
+                source_url=(
+                    f"https://example.com/benchmark-piantini-{number}"
+                ),
+                sector="Piantini",
+                city="Santo Domingo",
+                price=Decimal("300000.00"),
+                area_m2=Decimal("100.00"),
+                bedrooms=2,
+            )
+
+    def test_benchmark_keeps_sector_and_city_values_independent(self):
+        """Show correct benchmark values even when no trend snapshot exists."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:sector_detail", args=["Naco"]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            response.context["sector_trend"]["has_comparison"]
+        )
+        self.assertEqual(
+            response.context["sector_benchmark"][
+                "sector_median_price_per_m2"
+            ],
+            Decimal("2000.00"),
+        )
+        self.assertEqual(
+            response.context["sector_benchmark"][
+                "city_median_price_per_m2"
+            ],
+            Decimal("3000.00"),
+        )
+        self.assertContains(response, "US$ 2000 / m²")
+        self.assertContains(response, "US$ 3000 / m²")     
 
     
+
+class SectorComparisonViewTests(TestCase):
+    """Cover member-only sale and rental sector comparisons."""
+
+    def setUp(self):
+        """Create distinct active sale and rental samples for two sectors."""
+        self.user = get_user_model().objects.create_user(
+            username="sector-comparison-user",
+            email="sector-comparison@example.com",
+            password="SecurePass123!",
+        )
+
+        self._create_listing(
+            "COMPARE-SALE-NACO-001",
+            "Naco",
+            Listing.OperationType.SALE,
+            "200000.00",
+            "100.00",
+        )
+        self._create_listing(
+            "COMPARE-SALE-NACO-002",
+            "Naco",
+            Listing.OperationType.SALE,
+            "240000.00",
+            "120.00",
+        )
+        self._create_listing(
+            "COMPARE-SALE-PIANTINI-001",
+            "Piantini",
+            Listing.OperationType.SALE,
+            "360000.00",
+            "100.00",
+        )
+        self._create_listing(
+            "COMPARE-SALE-PIANTINI-002",
+            "Piantini",
+            Listing.OperationType.SALE,
+            "330000.00",
+            "100.00",
+        )
+        self._create_listing(
+            "COMPARE-SALE-ONLY-001",
+            "Venta Exclusiva",
+            Listing.OperationType.SALE,
+            "180000.00",
+            "100.00",
+        )
+        self._create_listing(
+            "COMPARE-RENT-NACO-001",
+            "Naco",
+            Listing.OperationType.RENT,
+            "1800.00",
+            "100.00",
+        )
+        self._create_listing(
+            "COMPARE-RENT-PIANTINI-001",
+            "Piantini",
+            Listing.OperationType.RENT,
+            "3000.00",
+            "100.00",
+        )
+        self._create_listing(
+            "COMPARE-RENT-ONLY-001",
+            "Alquiler Exclusivo",
+            Listing.OperationType.RENT,
+            "900.00",
+            "90.00",
+        )
+
+    def _create_listing(
+        self,
+        identifier,
+        sector,
+        operation_type,
+        price,
+        area_m2,
+    ):
+        """Create one active USD apartment fixture for a market operation."""
+        return Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id=identifier,
+            source_url=f"https://example.com/{identifier.lower()}",
+            property_type=Listing.PropertyType.APARTMENT,
+            operation_type=operation_type,
+            sector=sector,
+            city="Santo Domingo",
+            price=Decimal(price),
+            currency=Listing.Currency.USD,
+            area_m2=Decimal(area_m2),
+            bedrooms=2,
+            is_active=True,
+        )
+
+    def test_anonymous_user_is_redirected_from_sale_sector_comparison(self):
+        """Require an account before exposing sale sector comparison data."""
+        url = reverse("market:compare_sectors")
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_compares_sale_sectors_without_rental_data(self):
+        """Use sale-only values and identify the lower median sale sector."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:compare_sectors"),
+            {
+                "sector_1": "Naco",
+                "sector_2": "Piantini",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            response.context["is_rental_sector_comparison"]
+        )
+        self.assertEqual(
+            response.context["first_sector_metrics"][
+                "median_price_per_m2"
+            ],
+            Decimal("2000.00"),
+        )
+        self.assertEqual(
+            response.context["comparison"]["lower_median_sector"],
+            "Naco",
+        )
+        self.assertNotIn(
+            "Alquiler Exclusivo",
+            response.context["available_sectors"],
+        )
+        self.assertContains(
+            response,
+            "Naco tiene el menor precio mediano por m².",
+        )
+
+        self.assertContains(
+            response,
+            "SectorComparisonCompleted",
+        )
+        self.assertContains(
+            response,
+            "sector_comparison_completed",
+        )
+        self.assertContains(
+            response,
+            'market_operation: "sale"',
+        )
+
+    def test_anonymous_user_is_redirected_from_rental_sector_comparison(self):
+        """Require an account before exposing rental sector comparison data."""
+        url = reverse("market:rental_compare_sectors")
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_compares_rental_sectors_without_sale_data(self):
+        """Use monthly-rental values only on the rental comparison route."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:rental_compare_sectors"),
+            {
+                "sector_1": "Naco",
+                "sector_2": "Piantini",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            response.context["is_rental_sector_comparison"]
+        )
+        self.assertEqual(
+            response.context["first_sector_metrics"][
+                "median_price_per_m2"
+            ],
+            Decimal("18.00"),
+        )
+        self.assertEqual(
+            response.context["comparison"]["lower_median_sector"],
+            "Naco",
+        )
+        self.assertNotIn(
+            "Venta Exclusiva",
+            response.context["available_sectors"],
+        )
+        self.assertContains(response, "Alquiler mensual promedio")
+
+        self.assertContains(
+            response,
+            "RentalSectorComparisonCompleted",
+        )
+        self.assertContains(
+            response,
+            "rental_sector_comparison_completed",
+        )
+        self.assertContains(
+            response,
+            'market_operation: "rent"',
+        )
+
+    def test_same_sector_selection_shows_a_clear_error(self):
+        """Prevent a member from comparing one sector with itself."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:compare_sectors"),
+            {
+                "sector_1": "Naco",
+                "sector_2": "Naco",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Selecciona dos sectores diferentes.",
+        )
+        self.assertIsNone(response.context["comparison"])
+
+        self.assertNotContains(
+            response,
+            "SectorComparisonCompleted",
+        )
+
+    def test_sale_comparison_rejects_a_rental_only_sector(self):
+        """Reject sectors unavailable in the current sale-data scope."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:compare_sectors"),
+            {
+                "sector_1": "Naco",
+                "sector_2": "Alquiler Exclusivo",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Uno de los sectores seleccionados ya no tiene "
+            "datos disponibles.",
+        )
+
+    def test_member_can_start_sale_comparison_from_sector_report(self):
+        """Prefill the sale comparison with the report sector for members."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:sector_detail", args=["Naco"]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            f"{reverse('market:compare_sectors')}?sector_1=Naco",
+        )
+
+    def test_member_can_start_rental_comparison_from_sector_report(self):
+        """Prefill the rental comparison with the report sector for members."""
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("market:rental_sector_detail", args=["Naco"]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            (
+                f"{reverse('market:rental_compare_sectors')}"
+                "?sector_1=Naco"
+            ),
+        )
+
+    def test_prefilled_sector_waits_for_a_second_selection(self):
+        """Opening a report link preselects a sector without an error or conversion."""
+        self.client.force_login(self.user)
+
+        for route in ("market:compare_sectors", "market:rental_compare_sectors"):
+            with self.subTest(route=route):
+                response = self.client.get(reverse(route), {"sector_1": "Naco"})
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.context["selected_sector_1"], "Naco")
+                self.assertEqual(response.context["selected_sector_2"], "")
+                self.assertIsNone(response.context["error"])
+                self.assertIsNone(response.context["comparison"])
+                self.assertNotContains(response, "No se pudo comparar")
+                self.assertNotContains(response, "SectorComparisonCompleted")
+                self.assertNotContains(response, "sector_comparison_completed")
+
+    def test_comparison_ignores_unpriced_and_out_of_city_listings(self):
+        """Only priced local apartments should count toward a sector's metrics."""
+        self.client.force_login(self.user)
+
+        self._create_listing(
+            "COMPARE-NO-PRICE", "Naco", Listing.OperationType.SALE, "0", "100"
+        )
+        outside_city = self._create_listing(
+            "COMPARE-OTHER-CITY", "Naco", Listing.OperationType.SALE, "900000", "100"
+        )
+        outside_city.city = "Santiago"
+        outside_city.save(update_fields=["city"])
+
+        response = self.client.get(
+            reverse("market:compare_sectors"),
+            {"sector_1": "Naco", "sector_2": "Piantini"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        naco = response.context["first_sector_metrics"]
+        self.assertEqual(naco["listings_count"], 2)
+        self.assertEqual(naco["average_price"], Decimal("220000.00"))
+        # Following the dashboard → report → comparison path must keep the same sample.
+        overview = self.client.get(reverse("market:overview"))
+        report = self.client.get(reverse("market:sector_detail", args=["Naco"]))
+
+        self.assertEqual(overview.status_code, 200)
+        self.assertEqual(report.status_code, 200)
+
+        by_sector = {row["sector"]: row for row in overview.context["sector_stats"]}
+        for page, metrics in (("dashboard", by_sector["Naco"]), ("report", report.context)):
+            with self.subTest(page=page):
+                self.assertEqual(metrics["listings_count"], 2)
+                self.assertEqual(metrics["average_price"], Decimal("220000.00"))
+        

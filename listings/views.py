@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
-from django.db.models import DecimalField, F, ExpressionWrapper, Max, Q
-from .models import Listing, Favorite, SavedSearch
+from django.db.models import DecimalField, F, ExpressionWrapper, Max, Q, Prefetch
+from .models import Listing, Favorite, SavedSearch, ListingPriceSnapshot
 from decimal import Decimal, InvalidOperation
 from statistics import mean, median
 from django.core.paginator import Paginator
@@ -12,7 +12,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from .forms import CsvImportForm, SavedSearchForm
 from .services import get_comparable_listings, MINIMUM_COMPARABLES
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 from django.utils import timezone
 import csv
 import json
@@ -25,7 +25,21 @@ from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 
 
-# Create your views here.
+# =============================================================================
+# SALE AND RENTAL CATALOG ARCHITECTURE
+# =============================================================================
+# Catalog, comparison, and saved-search behavior is shared by sale and rental
+# listings through the `operation_type` argument.
+#
+# Sale remains the default for backward compatibility. Rental wrappers require
+# authentication and pass RENT explicitly. Saved searches store operation_type
+# in their query string so they reopen the correct catalog without duplicating
+# data in the database.
+#
+# When adding a listing feature, always filter by operation_type so sale prices
+# and monthly rents cannot appear in the same result set.
+# =============================================================================
+
 SAVED_SEARCH_FILTERS = (
     "q",
     "sector",
@@ -35,6 +49,7 @@ SAVED_SEARCH_FILTERS = (
     "min_area_m2",
     "max_area_m2",
     "sort",
+    "operation_type",
 )
 
 
@@ -55,7 +70,76 @@ def parse_optional_int(value):
     except:
         return None
 
+def build_saved_search_summary(query_parameters, is_rental):
+    """Return a readable summary of filters stored in a saved search.
 
+    SavedSearch stores one encoded query string. This helper converts that
+    technical data into display-only text without duplicating database fields.
+    """
+
+    summary_parts = []
+
+    monthly_suffix = " / mes" if is_rental else ""
+    search_term = query_parameters.get("q", "").strip()
+    sector = query_parameters.get("sector", "").strip()
+    bedrooms = parse_optional_int(
+        query_parameters.get("bedrooms", "")
+    )
+    min_price = parse_optional_decimal(
+        query_parameters.get("min_price", "")
+    )
+    max_price = parse_optional_decimal(
+        query_parameters.get("max_price", "")
+    )
+    min_area_m2 = parse_optional_decimal(
+        query_parameters.get("min_area_m2", "")
+    )
+    max_area_m2 = parse_optional_decimal(
+        query_parameters.get("max_area_m2", "")
+    )
+
+    # Ignore malformed values from old or manually edited URLs.
+    if min_price is not None and not min_price.is_finite():
+        min_price = None
+    if max_price is not None and not max_price.is_finite():
+        max_price = None
+    if min_area_m2 is not None and not min_area_m2.is_finite():
+        min_area_m2 = None
+    if max_area_m2 is not None and not max_area_m2.is_finite():
+        max_area_m2 = None
+
+    if search_term:
+        summary_parts.append(f"Buscar: {search_term}")
+
+    if sector:
+        summary_parts.append(f"Sector: {sector}")
+
+    if bedrooms is not None and bedrooms > 0:
+        summary_parts.append(f"{bedrooms}+ hab.")
+
+    if min_price is not None and max_price is not None:
+        summary_parts.append(
+            f"US$ {min_price:,.0f}–{max_price:,.0f}{monthly_suffix}"
+        )
+    elif min_price is not None:
+        summary_parts.append(
+            f"Desde US$ {min_price:,.0f}{monthly_suffix}"
+        )
+    elif max_price is not None:
+        summary_parts.append(
+            f"Hasta US$ {max_price:,.0f}{monthly_suffix}"
+        )
+
+    if min_area_m2 is not None and max_area_m2 is not None:
+        summary_parts.append(
+            f"Área: {min_area_m2:,.0f}–{max_area_m2:,.0f} m²"
+        )
+    elif min_area_m2 is not None:
+        summary_parts.append(f"Desde {min_area_m2:,.0f} m²")
+    elif max_area_m2 is not None:
+        summary_parts.append(f"Hasta {max_area_m2:,.0f} m²")
+
+    return " · ".join(summary_parts) or "Filtros personalizados"
 
 def listings_list(request,operation_type=Listing.OperationType.SALE):
     selected_sector = request.GET.get("sector", "")
@@ -234,10 +318,13 @@ def listings_list(request,operation_type=Listing.OperationType.SALE):
             if is_rental_catalog
             else ""
         ),
-        "allow_saved_search": not is_rental_catalog,
+        "allow_saved_search": True,
+        "saved_search_operation_type": operation_type,
     }
     
     return render(request, "listings/list.html", context)
+
+
 
 @login_required
 def rentals_list(request):
@@ -261,6 +348,13 @@ def save_search(request):
 
     query_parameters = request.POST.copy()
 
+    operation_type = query_parameters.get("operation_type", Listing.OperationType.SALE)
+
+    if operation_type not in Listing.OperationType.values:
+        operation_type = Listing.OperationType.SALE
+
+    query_parameters["operation_type"] = operation_type
+
     for key in list(query_parameters):
         value = query_parameters.get(key,"").strip()
 
@@ -275,6 +369,7 @@ def save_search(request):
         "max_price",
         "min_area_m2",
         "max_area_m2",
+       
     )
 
     if not any(query_parameters.get(key) for key in meaningful_filters):
@@ -306,15 +401,59 @@ def save_search(request):
             f'Búsqueda "{saved_search.name}" actualizada.',
         )
 
-    return redirect(
-        f"{reverse('listings:list')}?{query_string}"
+    catalog_url = (
+        reverse("listings:rentals")
+        if operation_type == Listing.OperationType.RENT
+        else reverse("listings:list")
     )
+
+    return redirect(f"{catalog_url}?{query_string}")
 
 @login_required
 def saved_searches(request):
+
+    """Show readable saved-sale and saved-rental searches for one user.
+
+    Display fields are derived from each stored query string at request time.
+    This keeps the query string as the single source of truth and avoids a
+    database migration for presentation-only metadata.
+    """
     saved_searches = SavedSearch.objects.filter(
         user=request.user,
     )
+
+    for saved_search in saved_searches:
+        query_parameters = QueryDict(saved_search.query_string)
+
+        operation_type = query_parameters.get(
+            "operation_type",
+            Listing.OperationType.SALE,
+        )
+
+         # Legacy searches may not include an operation type, so they remain sales.
+        if operation_type not in Listing.OperationType.values:
+            operation_type = Listing.OperationType.SALE
+
+        is_rental = operation_type == Listing.OperationType.RENT
+
+
+        saved_search.catalog_url = (
+            reverse("listings:rentals")
+            if is_rental
+            else reverse("listings:list")
+        )
+
+        saved_search.operation_label = (
+            "Alquiler mensual"
+            if is_rental
+            else "Precio de venta"
+        )
+
+        saved_search.is_rental = is_rental
+        saved_search.filters_summary = build_saved_search_summary(
+            query_parameters,
+            is_rental,
+        )
 
     return render(
         request,
@@ -597,11 +736,16 @@ def listing_detail(request, pk):
         }
     )
 
-def compare_listings(request):
+def compare_listings(request, operation_type=Listing.OperationType.SALE):
+
+    is_rental_comparison = (
+        operation_type == Listing.OperationType.RENT
+    )
+
     available_listings = Listing.objects.filter(
         is_active = True,
          property_type=Listing.PropertyType.APARTMENT,
-        operation_type=Listing.OperationType.SALE,
+        operation_type=operation_type,
         currency=Listing.Currency.USD,
         price__isnull=False,
         area_m2__isnull=False,
@@ -617,9 +761,17 @@ def compare_listings(request):
 
     if selected_listing_1_id or selected_listing_2_id:
         if not selected_listing_1_id or not selected_listing_2_id:
-            error = "Selecciona dos propiedades para compararlas."
+             error = (
+                "Selecciona dos alquileres para compararlos."
+                if is_rental_comparison
+                else "Selecciona dos propiedades para compararlas."
+            )
         elif selected_listing_1_id == selected_listing_2_id:
-            error = "Selecciona dos propiedades diferentes."
+            error = (
+                "Selecciona dos alquileres diferentes."
+                if is_rental_comparison
+                else "Selecciona dos propiedades diferentes."
+            )
         else:
             listing_1 = available_listings.filter(
                 pk=selected_listing_1_id
@@ -630,7 +782,14 @@ def compare_listings(request):
             ).first()
 
             if not listing_1 or not listing_2:
-                error = "Una de las propiedades seleccionadas no está disponible."
+                error = (
+                    "Uno de los alquileres seleccionados no está disponible."
+                    if is_rental_comparison
+                    else (
+                        "Una de las propiedades seleccionadas "
+                        "no está disponible."
+                    )
+                )
 
     comparison = None
     if listing_1 and listing_2:
@@ -640,7 +799,15 @@ def compare_listings(request):
         if price_per_m2_1 is not None and price_per_m2_2 is not None:
             if price_per_m2_1 == price_per_m2_2:
                 comparison = {
-                    "label": "Las Dos propiedades tienen el mismo precio por m2.",
+                    "label": (
+                        "Los dos alquileres tienen el mismo "
+                        "alquiler mensual por m²."
+                        if is_rental_comparison
+                        else (
+                            "Las Dos propiedades tienen el mismo "
+                            "precio por m2."
+                        )
+                    ),
                     "difference_percent": Decimal("0.00"),
                     "lower_price_listing": None,
                 }
@@ -659,16 +826,32 @@ def compare_listings(request):
 
                 ).quantize(Decimal("0.01"))
 
-                position = (
-                    "primera"
-                    if lower_price_listing.pk == listing_1.pk
-                    else "segunda"
-                )
+                if is_rental_comparison:
+                    position = (
+                        "primer"
+                        if lower_price_listing.pk == listing_1.pk
+                        else "segundo"
+                    )
+
+                    label = (
+                        f"El {position} alquiler tiene el menor "
+                        "alquiler mensual por m²."
+                    )
+                else:
+
+                    position = (
+                        "primera"
+                        if lower_price_listing.pk == listing_1.pk
+                        else "segunda"
+                    )
+                    label = (
+                        f"La {position} propiedad tiene el menor "
+                        "precio por m2."
+                    )
+
 
                 comparison = {
-                    "label":(
-                        f"La {position} propiedad tiene el menor precio por m2."
-                    ),
+                    "label": label,
                     "difference_percent": difference_percent,
                     "lower_price_listing": lower_price_listing,
                 }
@@ -684,7 +867,15 @@ def compare_listings(request):
             "listing_2": listing_2,
             "error": error,
             "comparison": comparison,
+            "is_rental_comparison": is_rental_comparison,
          },
+    )
+
+@login_required
+def rental_compare_listings(request):
+    return compare_listings(
+        request,
+        operation_type=Listing.OperationType.RENT,
     )
 
 @staff_member_required
@@ -880,20 +1071,230 @@ def toggle_favorite(request,pk):
 
     return redirect(next_url)
 
+def get_favorite_price_change(favorite):
+     """Return a verified price change that happened after a favorite was saved.
+
+    The comparison uses the last snapshot at or before the favorite date as
+    the baseline, then compares it with the newest snapshot. Returning None
+    when evidence is incomplete prevents the interface from making guesses.
+    """
+     price_history = getattr(
+        favorite.listing,
+        "favorite_price_history",
+        [],
+     )
+
+     if not price_history:
+        return None
+
+     saved_price_snapshot = next(
+         (
+         snapshot
+         for snapshot in reversed(price_history)
+         if snapshot.recorded_at <= favorite.created_at
+        ),
+        None,
+    )
+
+     latest_snapshot = price_history[-1]
+
+     if saved_price_snapshot is None:
+            return None
+
+     if latest_snapshot.recorded_at <= favorite.created_at:
+            return None
+
+     if saved_price_snapshot.currency != latest_snapshot.currency:
+            return None
+
+     if saved_price_snapshot.price <= 0:
+            return None
+
+     amount = latest_snapshot.price - saved_price_snapshot.price
+
+     if amount == 0:
+            return None
+
+     is_rental = (
+        favorite.listing.operation_type == Listing.OperationType.RENT
+     )
+
+     if amount < 0:
+        label = (
+            "Alquiler mensual reducido desde que lo guardaste"
+            if is_rental
+            else "Precio reducido desde que lo guardaste"
+        )
+        css_class = "favorite-price-change--down"
+
+     else:
+        label = (
+            "Alquiler mensual aumentado desde que lo guardaste"
+            if is_rental
+            else "Precio aumentado desde que lo guardaste"
+        )
+        css_class = "favorite-price-change--up"
+
+     percent = (
+         abs(amount)
+         / saved_price_snapshot.price
+         * Decimal("100")
+     ).quantize(Decimal("0.01"))
+
+     return{
+        "label": label,
+        "css_class": css_class,
+        "amount": abs(amount),
+        "percent": percent,
+     }
+
 @login_required
 def favorites_list(request):
+    """Show active favorites with sale/rental filters and verified changes.
+
+    Price history is prefetched once for the complete favorite list, avoiding
+    one database query per favorite while supporting change indicators.
+    """
+    selected_operation_type = request.GET.get(
+        "operation_type",
+        "all",
+    )
+
+    valid_operation_types = (
+        Listing.OperationType.SALE,
+        Listing.OperationType.RENT,
+    )
+
+    if selected_operation_type not in valid_operation_types:
+        selected_operation_type = "all"
+
     favorites=(
         Favorite.objects.filter(
             user=request.user,
             listing__is_active=True,
         ).select_related("listing")
+        .prefetch_related(
+            Prefetch(
+                "listing__price_history",
+                queryset=ListingPriceSnapshot.objects.only(
+                    "id",
+                    "listing_id",
+                    "price",
+                    "currency",
+                    "recorded_at",
+                ).order_by("recorded_at", "pk"),
+                to_attr="favorite_price_history",
+            )
+        )
     )
+
+    if selected_operation_type != "all":
+        favorites = favorites.filter(
+            listing__operation_type=selected_operation_type
+        )
+
+     # Attach temporary display data; it is not duplicated in the database.
+    for favorite in favorites:
+        favorite.price_change_since_saved = (
+            get_favorite_price_change(favorite)
+        )
 
     return render(
         request,
         "listings/favorites.html",
         {
             "favorites": favorites,
+            "selected_operation_type": selected_operation_type,
         },
     )
+
+@login_required
+def compare_favorites(request):
+    """Redirect two owned favorites to the correct existing comparison page.
+
+    The selection is validated server-side so a user cannot compare another
+    user's favorite, inactive listings, mixed sale/rental listings, or fewer
+    than exactly two saved favorites.
+    """
+
+    selected_operation_type = request.GET.get(
+        "operation_type",
+        "",
+    )
+
+    favorites_url = reverse("listings:favorites")
+
+    if selected_operation_type not in Listing.OperationType.values:
+        messages.error(
+            request,
+            "Selecciona primero Venta o Alquiler mensual.",
+        )
+        return redirect(favorites_url)
+    favorites_url = (
+        f"{favorites_url}"
+        f"?operation_type={selected_operation_type}"
+    )
+
+    try:
+        selected_favorite_ids = [
+            int(value)
+            for value in request.GET.getlist("favorite_id")
+        ]
+    except (TypeError, ValueError):
+        selected_favorite_ids = []
+
+    if(
+        len(selected_favorite_ids) != 2
+        or len(set(selected_favorite_ids)) != 2
+    ):
+        messages.error(
+            request,
+            "Selecciona exactamente dos favoritos para comparar.",
+        )
+        return redirect(favorites_url)
+
+    favorites_by_id = {
+        favorite.pk: favorite
+        for favorite in Favorite.objects.filter(
+            pk__in=selected_favorite_ids,
+            user=request.user,
+            listing__is_active=True,
+        ).select_related("listing")
+    }
+
+    if len(favorites_by_id) != 2:
+       messages.error(
+            request,
+            "Uno de los favoritos seleccionados ya no está disponible.",
+        )
+       return redirect(favorites_url)
+
+    selected_favorites = [
+        favorites_by_id[favorite_id]
+        for favorite_id in selected_favorite_ids
+    ]
+
+    if any(
+        favorite.listing.operation_type != selected_operation_type
+        for favorite in selected_favorites
+    ):
+        messages.error(
+            request,
+            "Selecciona dos favoritos del mismo tipo.",
+        )
+        return redirect(favorites_url)
+
+    comparison_url = (
+        reverse("listings:rental_compare")
+        if selected_operation_type == Listing.OperationType.RENT
+        else reverse("listings:compare")
+    )
+
+    return redirect(
+        f"{comparison_url}"
+        f"?listing_1={selected_favorites[0].listing_id}"
+        f"&listing_2={selected_favorites[1].listing_id}"
+    )
+ 
+
 

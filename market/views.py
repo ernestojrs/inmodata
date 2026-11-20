@@ -9,25 +9,45 @@ from listings.services import get_comparable_listings, MINIMUM_COMPARABLES
 from django.contrib.auth.decorators import login_required
 import json
 
+# =============================================================================
+# SALE AND RENTAL MARKET ARCHITECTURE
+# =============================================================================
+# Most market calculations are shared between sale and rental pages.
+#
+# The base views accept `operation_type`, which defaults to SALE so existing
+# public sale pages keep working. Small rental wrapper views pass RENT and use
+# @login_required, ensuring monthly-rent data never mixes with sale data and
+# remains a signed-in feature.
+#
+# Keep shared calculations in the base views. Do not create separate copies of
+# the pricing, opportunity, trend, or price-drop algorithms for rentals.
+# =============================================================================
+
 # Create your views here.
+
+def _current_market_listings(operation_type):
+    """Select comparable Santo Domingo apartments for current sector statistics."""
+    return Listing.objects.filter(
+        is_active=True,
+        city__iexact="Santo Domingo",
+        property_type=Listing.PropertyType.APARTMENT,
+        operation_type=operation_type,
+        currency=Listing.Currency.USD,
+        price__gt=0,
+        area_m2__gt=0,
+    ).exclude(sector="")
 
 
 
 def market_overview(request,operation_type=Listing.OperationType.SALE,):
+    """Summarize eligible listings by sector for the selected sale or rental market."""
     price_per_m2_expression = ExpressionWrapper(
         F('price') / F('area_m2'),
         output_field=DecimalField(max_digits=14, decimal_places=2)
     )
 
-    listings =( Listing.objects.filter(
-        is_active=True,
-        property_type= Listing.PropertyType.APARTMENT,
-        operation_type=operation_type,
-        currency= Listing.Currency.USD,
-        price__isnull=False,
-        area_m2__isnull=False,
-        area_m2__gt=0,
-        ).annotate(price_per_m2=price_per_m2_expression)
+    listings = _current_market_listings(operation_type).annotate(
+        price_per_m2=price_per_m2_expression,
     )
 
     last_updated = listings.aggregate(latest=Max("last_seen_at"))["latest"]
@@ -523,18 +543,19 @@ def rental_yield(request):
             "error": error,
         },
     )
-            
-
-                
-        
 
 
-def opportunities(request):
+def opportunities(request, operation_type=Listing.OperationType.SALE,):
+
+    is_rental_opportunities = (
+        operation_type == Listing.OperationType.RENT
+    )
+
     listings = list(
         Listing.objects.filter(
             is_active=True,
             property_type=Listing.PropertyType.APARTMENT,
-            operation_type=Listing.OperationType.SALE,
+            operation_type=operation_type,
             currency=Listing.Currency.USD,
             price__isnull=False,
             area_m2__isnull=False,
@@ -646,12 +667,19 @@ def opportunities(request):
         request,
         "market/opportunities.html",
         {
-            "opportunities": opportunities_list,
+            
+                "opportunities": opportunities_list,
+                "is_rental_opportunities": is_rental_opportunities,
+            
         },
     )
 
-
-
+@login_required
+def rental_opportunities(request):
+    return opportunities(
+        request,
+        operation_type=Listing.OperationType.RENT,
+    )
     
 
 def mortgage_calculator(request):
@@ -733,12 +761,17 @@ def mortgage_calculator(request):
         },
     )
 
-def price_drops(request):
+def price_drops(request, operation_type=Listing.OperationType.SALE,):
+    
+    is_rental_price_drops = (
+        operation_type == Listing.OperationType.RENT
+    )
+
     listings = (
         Listing.objects.filter(
             is_active = True,
             property_type=Listing.PropertyType.APARTMENT,
-            operation_type=Listing.OperationType.SALE,
+            operation_type=operation_type,
             currency=Listing.Currency.USD,
             price__isnull=False,
         ).prefetch_related("price_history")
@@ -758,13 +791,16 @@ def price_drops(request):
         oldest = history[0]
         newest = history[-1]
 
+        if oldest.price <=0 :
+            continue
+
         amount = newest.price - oldest.price
 
         if amount >= 0:
             continue
 
         percent = (
-            amount / oldest.price * Decimal("100")
+           abs(amount) / oldest.price * Decimal("100")
         ).quantize(Decimal("0.01"))
 
         price_drops_list.append(
@@ -778,31 +814,40 @@ def price_drops(request):
             }
         )
 
-    price_drops_list.sort(key=lambda item: item["percent"])
+    price_drops_list.sort(key=lambda item: item["percent"], reverse=True)
 
     return render(
         request,
         "market/price_drops.html",
         {
             "price_drops": price_drops_list,
+            "is_rental_price_drops": is_rental_price_drops,
         }
     )
 
+@login_required
+def rental_price_drops(request):
+    return price_drops(
+        request,
+        operation_type=Listing.OperationType.RENT,
+    )
+
 def sector_detail(request,sector,operation_type=Listing.OperationType.SALE,):
+
+    """Render current sale or rental metrics for one Santo Domingo sector.
+
+    Benchmark values use active listings today, while trend values use daily
+    snapshots. Keeping them separate prevents a missing trend snapshot from
+    changing the sector-versus-city comparison.
+    """
 
     is_rental_sector = (
         operation_type == Listing.OperationType.RENT
     )
 
-    market_listings = Listing.objects.filter(
-         is_active=True,
-        property_type=Listing.PropertyType.APARTMENT,
-        operation_type=operation_type,
-        currency=Listing.Currency.USD,
-        price__isnull=False,
-        area_m2__isnull=False,
-        area_m2__gt=0,
-    )
+    market_listings = _current_market_listings(operation_type)
+
+
     listings = list(
           market_listings.filter(
             sector=sector,
@@ -844,21 +889,30 @@ def sector_detail(request,sector,operation_type=Listing.OperationType.SALE,):
 
         if sector_vs_city_percent <= Decimal("-10"):
             sector_vs_city_label = (
-                "Más accesible que el promedio de Santo Domingo"
+               "Alquiler más bajo que el promedio de Santo Domingo"
+                if is_rental_sector
+                else "Más accesible que el promedio de Santo Domingo"
             )
             sector_vs_city_class = "is-lower"
         elif sector_vs_city_percent >= Decimal("10"):
             sector_vs_city_label = (
-                "Por encima del promedio de Santo Domingo"
+                "Alquiler por encima del promedio de Santo Domingo"
+                if is_rental_sector
+                else "Por encima del promedio de Santo Domingo"
             )
             sector_vs_city_class = "is-higher"
         else:
             sector_vs_city_label = (
-                "Similar al promedio de Santo Domingo"
+                "Alquiler similar al promedio de Santo Domingo"
+                if is_rental_sector
+                else "Similar al promedio de Santo Domingo"
             )
             sector_vs_city_class = "is-similar"
 
         sector_benchmark = {
+            "sector_median_price_per_m2": (
+                median_price_per_m2
+            ),
             "city_median_price_per_m2": (
                 city_median_price_per_m2
             ),
@@ -1033,4 +1087,178 @@ def rental_sector_detail(request, sector):
         sector,
         operation_type=Listing.OperationType.RENT,
     )
+
+def _build_sector_comparison_metrics(market_listings, sector):
+    """Calculate current display metrics for one selected market sector."""
+    listings = list(
+        market_listings.filter(
+            sector=sector,
+        ).order_by("price")
+    )
+
+    if not listings:
+        return None
+
+    prices_per_m2 = [
+        listing.price_per_m2
+        for listing in listings
+        if listing.price_per_m2 is not None
+    ]
+
+    return {
+        "sector": sector,
+        "listings_count": len(listings),
+        "average_price": mean(
+            listing.price
+            for listing in listings
+        ),
+        "median_price_per_m2": median(prices_per_m2),
+        "lowest_price_per_m2": min(prices_per_m2),
+        "highest_price_per_m2": max(prices_per_m2),
+        "last_updated": max(
+            listing.last_seen_at
+            for listing in listings
+        ),
+        "sample_is_small": len(listings) < 5,
+    }
+
+@login_required
+def compare_sectors(
+    request,
+    operation_type=Listing.OperationType.SALE
+):
+    """Compare two current sale or monthly-rent sector market summaries."""
+    is_rental_sector_comparison = (
+        operation_type == Listing.OperationType.RENT
+    )
+
+    market_listings = _current_market_listings(operation_type)
+
+    available_sectors = list(
+        market_listings.values_list(
+            "sector",
+            flat=True,
+        ).distinct().order_by("sector")
+    )
+
+    selected_sector_1 = request.GET.get(
+        "sector_1",
+        "",
+    ).strip()
+
+    selected_sector_2 = request.GET.get(
+        "sector_2",
+        "",
+    ).strip()
+
+    first_sector_metrics = None
+    second_sector_metrics = None
+    comparison = None
+    error = None
+
+    # Report links send only sector_1. The comparison form sends both fields.
+    if "sector_2" not in request.GET:
+        if selected_sector_1 and selected_sector_1 not in available_sectors:
+            error = "Este sector ya no tiene datos disponibles."
+    else:
+        if not selected_sector_1 or not selected_sector_2:
+            error = "Selecciona dos sectores para compararlos."
+        elif selected_sector_1 == selected_sector_2:
+            error = "Selecciona dos sectores diferentes."
+        elif (
+            selected_sector_1 not in available_sectors
+            or selected_sector_2 not in available_sectors
+        ):
+            error = (
+                "Uno de los sectores seleccionados ya no tiene "
+                "datos disponibles."
+            )
+
+        else:
+            first_sector_metrics = _build_sector_comparison_metrics(
+                market_listings,
+                selected_sector_1,
+            )
+
+            second_sector_metrics = _build_sector_comparison_metrics(
+                market_listings,
+                selected_sector_2,
+            )
+
+            if not first_sector_metrics or not second_sector_metrics:
+                error = (
+                    "No se pudieron calcular datos para los sectores "
+                    "seleccionados."
+                )
+            else:
+                first_median = first_sector_metrics[
+                    "median_price_per_m2"
+                ]
+                second_median = second_sector_metrics[
+                    "median_price_per_m2"
+                ]
+
+                if first_median == second_median:
+                    comparison = {
+                        "label": (
+                            "Los dos sectores tienen el mismo valor "
+                            "mediano por m²."
+                        ),
+                        "difference_percent": Decimal("0.00"),
+                        "lower_median_sector": None,
+                    }
+                else:
+                    lower_metrics = (
+                        first_sector_metrics
+                        if first_median < second_median
+                        else second_sector_metrics
+                    )
+                    higher_median = max(first_median, second_median)
+                    lower_median = min(first_median, second_median)
+
+                    difference_percent = (
+                        (higher_median - lower_median)
+                        / higher_median
+                        * Decimal("100")
+                    ).quantize(Decimal("0.01"))
+
+                    comparison = {
+                        "label": (
+                            f"{lower_metrics['sector']} tiene el menor "
+                            f"{'alquiler mensual mediano' if is_rental_sector_comparison else 'precio mediano'} "
+                            "por m²."
+                        ),
+                        "difference_percent": difference_percent,
+                        "lower_median_sector": lower_metrics["sector"],
+                    }
+
+    return render(
+        request,
+        "market/sector_compare.html",
+        {
+            "available_sectors": available_sectors,
+            "selected_sector_1": selected_sector_1,
+            "selected_sector_2": selected_sector_2,
+            "first_sector_metrics": first_sector_metrics,
+            "second_sector_metrics": second_sector_metrics,
+            "comparison": comparison,
+            "error": error,
+            "is_rental_sector_comparison": (
+                is_rental_sector_comparison
+            ),
+        },
+    )
+
+@login_required
+def rental_compare_sectors(request):
+    """Render the member-only comparison for monthly-rent sectors."""
+    return compare_sectors(
+        request,
+        operation_type=Listing.OperationType.RENT,
+    )
+
+
+
+
+
        

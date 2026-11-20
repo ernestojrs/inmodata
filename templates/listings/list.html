@@ -119,13 +119,20 @@
 </form>
 
 {% if user.is_authenticated %}
-    <p>
+    <div class="listing-actions">
         {% if is_rental_catalog %}
             <a
                 class="secondary-button"
                 href="{% url 'listings:list' %}"
             >
                 Ver apartamentos en venta
+            </a>
+
+            <a
+                class="button"
+                href="{% url 'listings:rental_compare' %}"
+            >
+                Comparar alquileres
             </a>
         {% else %}
             <a
@@ -135,7 +142,7 @@
                 Explorar alquileres
             </a>
         {% endif %}
-    </p>
+    </div>
 {% endif %}
 
 {% if user.is_authenticated and allow_saved_search %}
@@ -154,6 +161,11 @@
         <input type="hidden" name="min_area_m2" value="{{ entered_min_area_m2 }}">
         <input type="hidden" name="max_area_m2" value="{{ entered_max_area_m2 }}">
         <input type="hidden" name="sort" value="{{ selected_sort }}">
+        <input
+            type="hidden"
+            name="operation_type"
+            value="{{ saved_search_operation_type }}"
+        >
 
         <div>
             <label for="{{ saved_search_form.name.id_for_label }}">

@@ -455,6 +455,71 @@ class ImportListingsCsvCommandTests(TestCase):
         self.assertEqual(import_run.updated_count, 0)
         self.assertEqual(import_run.skipped_count, 0)
 
+    def test_rental_price_change_creates_second_price_snapshot(self):
+        with TemporaryDirectory() as temporary_directory:
+            csv_path = Path(temporary_directory) / "rentals.csv"
+
+            csv_path.write_text(
+                (
+                    "source,source_listing_id,source_url,property_type,"
+                    "operation_type,sector,city,price,currency,area_m2,"
+                    "bedrooms,bathrooms,parking_spaces,is_active\n"
+                    "manual,RENT-HISTORY-001,"
+                    "https://example.com/rent-history-001,"
+                    "apartment,rent,Naco,Santo Domingo,1200,USD,100,"
+                    "2,2,1,true\n"
+                ),
+                encoding="utf-8",
+            )
+
+            call_command(
+                "import_listings_csv",
+                str(csv_path),
+            )
+
+            csv_path.write_text(
+                (
+                    "source,source_listing_id,source_url,property_type,"
+                    "operation_type,sector,city,price,currency,area_m2,"
+                    "bedrooms,bathrooms,parking_spaces,is_active\n"
+                    "manual,RENT-HISTORY-001,"
+                    "https://example.com/rent-history-001,"
+                    "apartment,rent,Naco,Santo Domingo,1000,USD,100,"
+                    "2,2,1,true\n"
+                ),
+                encoding="utf-8",
+            )
+
+            call_command(
+                "import_listings_csv",
+                str(csv_path),
+            )
+
+        listing = Listing.objects.get(
+            source_listing_id="RENT-HISTORY-001",
+        )
+
+        self.assertEqual(
+            listing.operation_type,
+            Listing.OperationType.RENT,
+        )
+        self.assertEqual(listing.price, Decimal("1000.00"))
+
+        prices = list(
+            listing.price_history.order_by("pk").values_list(
+                "price",
+                flat=True,
+            )
+        )
+
+        self.assertEqual(
+            prices,
+            [
+                Decimal("1200.00"),
+                Decimal("1000.00"),
+            ],
+        )
+
     def test_deactivate_missing_dry_run_keeps_listing_active(self):
         old_listing = Listing.objects.create(
             source=Listing.Source.MANUAL,
@@ -680,6 +745,7 @@ class CsvExportViewTests(TestCase):
 
 class FavoritesViewTests(TestCase):
     def setUp(self):
+        """Create a user plus sale and rental listings for favorite tests."""
         from django.contrib.auth import get_user_model
 
         user_model = get_user_model()
@@ -702,6 +768,36 @@ class FavoritesViewTests(TestCase):
             bathrooms=2,
             is_active=True,
         )
+
+        self.rental_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="FAVORITE-RENT-001",
+            source_url="https://example.com/favorite-rent-001",
+            sector="Piantini",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("1200.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+            bathrooms=2,
+            is_active=True,
+        )
+
+        self.second_rental_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="FAVORITE-RENT-002",
+            source_url="https://example.com/favorite-rent-002",
+            sector="Evaristo Morales",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("1400.00"),
+            area_m2=Decimal("110.00"),
+            bedrooms=2,
+            bathrooms=2,
+            is_active=True,
+        )
+
+        
 
     def test_anonymous_user_is_redirected_from_favorites_page(self):
         response = self.client.get(
@@ -798,6 +894,168 @@ class FavoritesViewTests(TestCase):
             "Naco",
         )
 
+    def test_rental_filter_shows_only_monthly_rent_favorites(self):
+        """Keep rental favorites separate from saved purchase listings."""
+        Favorite.objects.create(
+            user=self.user,
+            listing=self.listing,
+        )
+        Favorite.objects.create(
+            user=self.user,
+            listing=self.rental_listing,
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:favorites"),
+            {"operation_type": Listing.OperationType.RENT},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["selected_operation_type"],
+            Listing.OperationType.RENT,
+        )
+        self.assertEqual(response.context["favorites"].count(), 1)
+        self.assertContains(response, "Piantini")
+        self.assertContains(response, "Alquiler mensual")
+        self.assertContains(response, "US$ 1200 / mes")
+        self.assertNotContains(response, "Naco")
+
+    def test_rental_favorite_shows_verified_change_since_saved(self):
+        """Show a rental reduction only when snapshots bracket the save date."""
+        favorite = Favorite.objects.create(
+            user=self.user,
+            listing=self.rental_listing,
+        )
+
+        baseline_snapshot = ListingPriceSnapshot.objects.create(
+            listing=self.rental_listing,
+            price=Decimal("1200.00"),
+            currency=Listing.Currency.USD,
+        )
+        latest_snapshot = ListingPriceSnapshot.objects.create(
+            listing=self.rental_listing,
+            price=Decimal("1000.00"),
+            currency=Listing.Currency.USD,
+        )
+
+        ListingPriceSnapshot.objects.filter(
+            pk=baseline_snapshot.pk,
+        ).update(
+            recorded_at=favorite.created_at - timedelta(days=1),
+        )
+        ListingPriceSnapshot.objects.filter(
+            pk=latest_snapshot.pk,
+        ).update(
+            recorded_at=favorite.created_at + timedelta(days=1),
+        )
+
+        self.rental_listing.price = Decimal("1000.00")
+        self.rental_listing.save(update_fields=["price"])
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:favorites"),
+            {"operation_type": Listing.OperationType.RENT},
+        )
+
+        favorite_from_context = next(
+            item
+            for item in response.context["favorites"]
+            if item.pk == favorite.pk
+        )
+        price_change = favorite_from_context.price_change_since_saved
+
+        self.assertEqual(
+            price_change["label"],
+            "Alquiler mensual reducido desde que lo guardaste",
+        )
+        self.assertEqual(
+            price_change["amount"],
+            Decimal("200.00"),
+        )
+        self.assertEqual(
+            price_change["percent"],
+            Decimal("16.67"),
+        )
+        self.assertContains(response, "US$ 200 / mes")
+
+    def test_user_can_compare_two_rental_favorites(self):
+        """Redirect two owned rental favorites to the rental comparator."""
+        first_favorite = Favorite.objects.create(
+            user=self.user,
+            listing=self.rental_listing,
+        )
+        second_favorite = Favorite.objects.create(
+            user=self.user,
+            listing=self.second_rental_listing,
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:compare_favorites"),
+            {
+                "operation_type": Listing.OperationType.RENT,
+                "favorite_id": [
+                    first_favorite.pk,
+                    second_favorite.pk,
+                ],
+            },
+        )
+
+        expected_url = (
+            f"{reverse('listings:rental_compare')}"
+            f"?listing_1={self.rental_listing.pk}"
+            f"&listing_2={self.second_rental_listing.pk}"
+        )
+
+        self.assertRedirects(
+            response,
+            expected_url,
+            fetch_redirect_response=False,
+        )
+
+    def test_mixed_favorites_cannot_be_compared(self):
+        """Reject a selection that combines a sale and a rental favorite."""
+        sale_favorite = Favorite.objects.create(
+            user=self.user,
+            listing=self.listing,
+        )
+        rental_favorite = Favorite.objects.create(
+            user=self.user,
+            listing=self.rental_listing,
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:compare_favorites"),
+            {
+                "operation_type": Listing.OperationType.SALE,
+                "favorite_id": [
+                    sale_favorite.pk,
+                    rental_favorite.pk,
+                ],
+            },
+            follow=True,
+        )
+
+        self.assertRedirects(
+            response,
+            (
+                f"{reverse('listings:favorites')}"
+                f"?operation_type={Listing.OperationType.SALE}"
+            ),
+        )
+        self.assertContains(
+            response,
+            "Selecciona dos favoritos del mismo tipo.",
+        )
+
 class SavedSearchViewTests(TestCase):
     def setUp(self):
         from django.contrib.auth import get_user_model
@@ -851,7 +1109,81 @@ class SavedSearchViewTests(TestCase):
 
         self.assertEqual(
             saved_search.query_string,
-            "sector=Naco&max_price=250000",
+            "sector=Naco&max_price=250000&operation_type=sale",
+        )
+
+    def test_signed_in_user_can_save_a_rental_search(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("listings:save_search"),
+            {
+                "name": "Naco alquiler hasta US$1200",
+                "sector": "Naco",
+                "max_price": "1200",
+                "operation_type": Listing.OperationType.RENT,
+            },
+        )
+
+        saved_search = SavedSearch.objects.get(
+            user=self.user,
+            name="Naco alquiler hasta US$1200",
+        )
+
+        self.assertRedirects(
+            response,
+            (
+                f"{reverse('listings:rentals')}"
+                f"?{saved_search.query_string}"
+            ),
+            fetch_redirect_response=False,
+        )
+        self.assertIn(
+            "operation_type=rent",
+            saved_search.query_string,
+        )
+        self.assertIn(
+            "sector=Naco",
+            saved_search.query_string,
+        )
+        self.assertIn(
+            "max_price=1200",
+            saved_search.query_string,
+        )
+
+        response = self.client.get(
+            reverse("listings:saved_searches"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        saved_search_from_context = next(
+            item
+            for item in response.context["saved_searches"]
+            if item.pk == saved_search.pk
+        )
+
+        self.assertEqual(
+            saved_search_from_context.catalog_url,
+            reverse("listings:rentals"),
+        )
+
+    def test_operation_type_alone_does_not_save_a_search(self):
+        self.client.force_login(self.user)
+
+        self.client.post(
+            reverse("listings:save_search"),
+            {
+                "name": "No debe guardarse",
+                "operation_type": Listing.OperationType.RENT,
+            },
+        )
+
+        self.assertFalse(
+            SavedSearch.objects.filter(
+                user=self.user,
+                name="No debe guardarse",
+            ).exists()
         )
 
     def test_user_only_sees_own_saved_searches(self):
@@ -924,6 +1256,45 @@ class SavedSearchViewTests(TestCase):
             SavedSearch.objects.filter(pk=saved_search.pk).exists()
         )
 
+    def test_rental_saved_search_shows_type_and_filter_summary(self):
+        """Show rental metadata without storing duplicate presentation fields."""
+        saved_search = SavedSearch.objects.create(
+            user=self.user,
+            name="Naco alquiler familiar",
+            query_string=(
+                "sector=Naco&bedrooms=2&max_price=1200&"
+                "min_area_m2=80&max_area_m2=120&operation_type=rent"
+            ),
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:saved_searches"),
+        )
+
+        saved_search_from_context = next(
+            item
+            for item in response.context["saved_searches"]
+            if item.pk == saved_search.pk
+        )
+
+        self.assertEqual(
+            saved_search_from_context.operation_label,
+            "Alquiler mensual",
+        )
+        self.assertTrue(saved_search_from_context.is_rental)
+        self.assertEqual(
+            saved_search_from_context.filters_summary,
+            (
+                "Sector: Naco · 2+ hab. · Hasta US$ 1,200 / mes "
+                "· Área: 80–120 m²"
+            ),
+        )
+        self.assertEqual(
+            saved_search_from_context.catalog_url,
+            reverse("listings:rentals"),
+        )
 class RentalListingAccessTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -993,4 +1364,111 @@ class RentalListingAccessTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+
+
+class RentalComparisonViewTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="rental-comparison-user",
+            email="rental-comparison@example.com",
+            password="SecurePass123!",
+        )
+
+        self.first_rental = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="RENT-COMPARE-001",
+            source_url="https://example.com/rent-compare-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("900.00"),
+            area_m2=Decimal("90.00"),
+            bedrooms=2,
+        )
+
+        self.second_rental = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="RENT-COMPARE-002",
+            source_url="https://example.com/rent-compare-002",
+            sector="Piantini",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.RENT,
+            price=Decimal("1100.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+        self.sale_listing = Listing.objects.create(
+            source=Listing.Source.MANUAL,
+            source_listing_id="SALE-COMPARE-001",
+            source_url="https://example.com/sale-compare-001",
+            sector="Naco",
+            city="Santo Domingo",
+            operation_type=Listing.OperationType.SALE,
+            price=Decimal("250000.00"),
+            area_m2=Decimal("100.00"),
+            bedrooms=2,
+        )
+
+    def test_anonymous_user_is_redirected_from_rental_comparison(self):
+        url = reverse("listings:rental_compare")
+
+        response = self.client.get(url)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('accounts:login')}?next={url}",
+            fetch_redirect_response=False,
+        )
+
+    def test_signed_in_user_can_compare_rentals_only(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:rental_compare"),
+            {
+                "listing_1": self.first_rental.pk,
+                "listing_2": self.second_rental.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["is_rental_comparison"])
+        self.assertEqual(
+            response.context["listing_1"],
+            self.first_rental,
+        )
+        self.assertEqual(
+            response.context["listing_2"],
+            self.second_rental,
+        )
+        self.assertEqual(
+            response.context["comparison"]["lower_price_listing"],
+            self.first_rental,
+        )
+        self.assertContains(response, "Compara dos alquileres")
+        self.assertContains(response, "Alquiler mensual")
+        self.assertContains(
+            response,
+            'gtag("event", "rental_comparison_completed");',
+        )
+        self.assertNotContains(response, "250000")
+
+    def test_sale_listing_cannot_be_compared_on_rental_page(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("listings:rental_compare"),
+            {
+                "listing_1": self.first_rental.pk,
+                "listing_2": self.sale_listing.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Uno de los alquileres seleccionados no está disponible.",
+        )
+        self.assertIsNone(response.context["listing_2"])
 

@@ -11,6 +11,9 @@ from .forms import SignUpForm,ResendPasswordResetForm
 from .models import EmailVerification
 from .services import EmailDeliveryError, send_verification_email
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.db.models import Count,Q
+from listings.models import Favorite, Listing, SavedSearch
 
 
 class ResendPasswordResetView(auth_views.PasswordResetView):
@@ -40,6 +43,67 @@ def _safe_next_url(request):
         return next_url
 
     return ""
+
+@login_required
+def account_dashboard(request):
+    """Show the signed-in user's saved real-estate activity in one place.
+
+    Counts include only the current user's active favorites. Saved-search
+    operation types remain stored in their query strings for compatibility
+    with existing saved searches.
+    """
+    favorites = (
+        Favorite.objects.filter(
+            user=request.user,
+            listing__is_active=True,
+        )
+        .select_related("listing")
+        .order_by("-created_at")
+    )
+
+    favorite_counts = favorites.aggregate(
+        total=Count("id"),
+        sales=Count(
+            "id",
+        filter=Q(
+            listing__operation_type = Listing.OperationType.SALE
+            ),
+        ),
+        rentals=Count(
+            "id",
+            filter=Q(
+                listing__operation_type = Listing.OperationType.RENT
+            ),
+        ),
+    )
+
+    saved_searches = SavedSearch.objects.filter(
+        user = request.user,
+    ).order_by("-updated_at")
+
+    saved_search_total = saved_searches.count()
+
+    # Older saved searches without operation_type remain sale searches.
+    rental_saved_searches = saved_searches.filter(
+        query_string__contains="operation_type=rent",
+    ).count()
+
+    saved_search_counts = {
+        "total": saved_search_total,
+        "sales": saved_search_total - rental_saved_searches,
+        "rentals": rental_saved_searches,
+    }
+
+    return render(
+        request,
+        "accounts/dashboard.html",
+        {
+            "favorite_counts": favorite_counts,
+            "saved_search_counts": saved_search_counts,
+            "recent_favorites": favorites[:3],
+            "recent_saved_searches": saved_searches[:3],
+        },
+    )
 
 
 def sign_up(request):

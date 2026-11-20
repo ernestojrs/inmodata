@@ -1,35 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}Bajas de precio | InmoData{% endblock %}
+{% block title %}
+    {% if is_rental_price_drops %}
+        Bajas de alquiler
+    {% else %}
+        Bajas de precio
+    {% endif %}
+    | InmoData
+{% endblock %}
 
 {% block content %}
 <section class="price-drops-hero">
-    <p class="eyebrow">Seguimiento de mercado</p>
+    <p class="eyebrow">
+        {% if is_rental_price_drops %}
+            Seguimiento de alquileres
+        {% else %}
+            Seguimiento de mercado
+        {% endif %}
+    </p>
 
-    <h1>Propiedades con bajas de precio</h1>
+    <h1>
+        {% if is_rental_price_drops %}
+            Alquileres con bajas mensuales
+        {% else %}
+            Propiedades con bajas de precio
+        {% endif %}
+    </h1>
 
     <p class="lead">
-        Propiedades activas cuyo precio más reciente es menor
-        que su primer precio registrado por InmoData.
+        {% if is_rental_price_drops %}
+            Apartamentos activos cuyo alquiler mensual más reciente es menor
+            que el primer alquiler registrado por InmoData.
+        {% else %}
+            Propiedades activas cuyo precio más reciente es menor
+            que su primer precio registrado por InmoData.
+        {% endif %}
     </p>
 </section>
 
 <section class="price-drops-callout">
     <div>
-        <span>Reducciones detectadas</span>
-
-        <strong>
-            {% if price_drops %}
-                {{ price_drops|length }}
+        <span>
+            {% if is_rental_price_drops %}
+                Bajas de alquiler detectadas
             {% else %}
-                0
+                Reducciones detectadas
             {% endif %}
-        </strong>
+        </span>
+
+        <strong>{{ price_drops|length }}</strong>
     </div>
 
     <p>
-        Una baja de precio no garantiza que una propiedad sea una oportunidad.
-        Revisa el análisis, el estado del inmueble y su disponibilidad.
+        {% if is_rental_price_drops %}
+            Una baja de alquiler no garantiza que sea la mejor opción.
+            Revisa ubicación, condiciones y disponibilidad antes de decidir.
+        {% else %}
+            Una baja de precio no garantiza que una propiedad sea una oportunidad.
+            Revisa el análisis, el estado del inmueble y su disponibilidad.
+        {% endif %}
     </p>
 </section>
 
@@ -39,8 +68,23 @@
             <thead>
                 <tr>
                     <th>Sector</th>
-                    <th>Precio anterior</th>
-                    <th>Precio actual</th>
+
+                    <th>
+                        {% if is_rental_price_drops %}
+                            Alquiler anterior
+                        {% else %}
+                            Precio anterior
+                        {% endif %}
+                    </th>
+
+                    <th>
+                        {% if is_rental_price_drops %}
+                            Alquiler actual
+                        {% else %}
+                            Precio actual
+                        {% endif %}
+                    </th>
+
                     <th>Reducción</th>
                     <th></th>
                 </tr>
@@ -53,16 +97,20 @@
                             {{ drop.listing.sector }}
                         </td>
 
-                        <td data-label="Precio anterior">
-                            US$ {{ drop.old_price|floatformat:0 }}
+                        <td
+                            data-label="{% if is_rental_price_drops %}Alquiler anterior{% else %}Precio anterior{% endif %}"
+                        >
+                            US$ {{ drop.oldest_price|floatformat:0 }}{% if is_rental_price_drops %} / mes{% endif %}
                         </td>
 
-                        <td data-label="Precio actual">
-                            US$ {{ drop.new_price|floatformat:0 }}
+                        <td
+                            data-label="{% if is_rental_price_drops %}Alquiler actual{% else %}Precio actual{% endif %}"
+                        >
+                            US$ {{ drop.newest_price|floatformat:0 }}{% if is_rental_price_drops %} / mes{% endif %}
                         </td>
 
                         <td data-label="Reducción" class="price-reduced">
-                            -US$ {{ drop.amount|floatformat:0 }}
+                            -US$ {{ drop.amount|floatformat:0 }}{% if is_rental_price_drops %} / mes{% endif %}
                             ({{ drop.percent }}%)
                         </td>
 
@@ -81,12 +129,35 @@
     </div>
 {% else %}
     <section class="card">
-        <h2>Aún no hay bajas de precio registradas</h2>
+        <h2>
+            {% if is_rental_price_drops %}
+                Aún no hay bajas de alquiler registradas
+            {% else %}
+                Aún no hay bajas de precio registradas
+            {% endif %}
+        </h2>
 
         <p>
-            InmoData mostrará resultados aquí cuando una propiedad
-            tenga al menos dos precios registrados y el último sea menor.
+            {% if is_rental_price_drops %}
+                InmoData mostrará resultados aquí cuando un alquiler tenga al
+                menos dos precios registrados y el último sea menor.
+            {% else %}
+                InmoData mostrará resultados aquí cuando una propiedad tenga
+                al menos dos precios registrados y el último sea menor.
+            {% endif %}
         </p>
     </section>
 {% endif %}
+
+<p>
+    {% if is_rental_price_drops %}
+        <a class="source-link" href="{% url 'market:rental_overview' %}">
+            Ver mercado de alquileres
+        </a>
+    {% else %}
+        <a class="source-link" href="{% url 'market:overview' %}">
+            Ver mercado de ventas
+        </a>
+    {% endif %}
+</p>
 {% endblock %}

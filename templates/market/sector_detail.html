@@ -1,16 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}{{ sector }} | InmoData{% endblock %}
+{% block title %}{{ sector_page_title }} | InmoData{% endblock %}
 
 {% block content %}
-<p class="eyebrow">Reporte de sector</p>
+<p class="eyebrow">{{ sector_eyebrow }}</p>
 
-<h1>Mercado inmobiliario en {{ sector }}</h1>
+<h1>{{ sector_heading }}</h1>
 
-<p class="lead">
-    Datos de apartamentos activos en venta en {{ sector }},
-    Santo Domingo.
-</p>
+<p class="lead">{{ sector_lead }}</p>
 
 {% if sector_benchmark %}
     <section class="sector-benchmark-card {{ sector_benchmark.css_class }}">
@@ -20,7 +17,11 @@
             <h2>{{ sector_benchmark.label }}</h2>
 
             <p>
-                El precio mediano de {{ sector }} es
+                {% if is_rental_sector %}
+                    El alquiler mensual mediano de {{ sector }} es
+                {% else %}
+                    El precio mediano de {{ sector }} es
+                {% endif %}
                 <strong>
                     {% if sector_benchmark.difference_percent > 0 %}+{% endif %}
                     {{ sector_benchmark.difference_percent }}%
@@ -33,14 +34,19 @@
             <div>
                 <span>{{ sector }}</span>
                 <strong>
-                    US$ {{ median_price_per_m2|floatformat:0 }} / m²
+                    {% comment %}
+                    Current sector and city medians come from active listings, independently of
+                    the optional historical-trend snapshots shown below.
+                    {% endcomment %}
+                    US$ {{ sector_benchmark.sector_median_price_per_m2|floatformat:0 }} / m²{% if is_rental_sector %} al mes{% endif %}
                 </strong>
             </div>
 
             <div>
                 <span>Santo Domingo</span>
-                <strong>
-                    US$ {{ sector_benchmark.city_median_price_per_m2|floatformat:0 }} / m²
+               <strong>
+                    US$ {{ sector_benchmark.city_median_price_per_m2|floatformat:0 }} / m²{% if is_rental_sector %} al mes
+                    {% endif %}
                 </strong>
             </div>
         </div>
@@ -85,7 +91,11 @@
                 <h2>{{ sector_trend.label }}</h2>
 
                 <p>
-                    El precio mediano por m² cambió
+                    {% if is_rental_sector %}
+                        El alquiler mensual mediano por m² cambió
+                    {% else %}
+                        El precio mediano por m² cambió
+                    {% endif %}
                     <strong>
                         {% if sector_trend.difference_percent > 0 %}+{% endif %}
                         {{ sector_trend.difference_percent }}%
@@ -110,9 +120,7 @@
                         {{ sector_trend.latest_snapshot.snapshot_date|date:"d/m/Y" }}
                     </span>
                     <strong>
-                        US$
-                        {{ sector_trend.latest_snapshot.median_price_per_m2|floatformat:0 }}
-                        / m²
+                        US$ {{ sector_trend.latest_snapshot.median_price_per_m2|floatformat:0 }} / m²{% if is_rental_sector %} al mes{% endif %}
                     </strong>
                 </div>
 
@@ -122,9 +130,7 @@
                         {{ sector_trend.previous_snapshot.snapshot_date|date:"d/m/Y" }}
                     </span>
                     <strong>
-                        US$
-                        {{ sector_trend.previous_snapshot.median_price_per_m2|floatformat:0 }}
-                        / m²
+                        US$ {{ sector_trend.previous_snapshot.median_price_per_m2|floatformat:0 }} / m²{% if is_rental_sector %} al mes{% endif %}
                     </strong>
                 </div>
             </div>
@@ -132,8 +138,32 @@
     </section>
 {% endif %}
 
+{% if user.is_authenticated %}
+    {% comment %}
+    Prefill the current report sector so members can start a market comparison
+    without selecting their first sector again.
+    {% endcomment %}
+    <section class="comparison-actions">
+        {% if is_rental_sector %}
+            <a
+                class="secondary-button"
+                href="{% url 'market:rental_compare_sectors' %}?sector_1={{ sector|urlencode }}"
+            >
+                Comparar alquileres de {{ sector }}
+            </a>
+        {% else %}
+            <a
+                class="secondary-button"
+                href="{% url 'market:compare_sectors' %}?sector_1={{ sector|urlencode }}"
+            >
+                Comparar {{ sector }} con otro sector
+            </a>
+        {% endif %}
+    </section>
+{% endif %}
+
 <section class="card">
-    <p>Propiedades analizadas: <strong>{{ listings_count }}</strong></p>
+    <p>{{ sector_listings_label }}: <strong>{{ listings_count }}</strong></p>
 
     <p>
         Última actualización:
@@ -149,40 +179,67 @@
 
 <section class="sector-metrics-grid">
     <article class="sector-metric-card">
-        <span>Precio promedio</span>
-        <strong>US$ {{ average_price|floatformat:0 }}</strong>
+        <span>{{ sector_average_label }}</span>
+        <strong>
+            US$ {{ average_price|floatformat:0 }}{{ sector_price_suffix }}
+        </strong>
     </article>
 
     <article class="sector-metric-card">
-        <span>Precio mediano por m²</span>
-        <strong>US$ {{ median_price_per_m2|floatformat:0 }}</strong>
+        <span>{{ sector_median_per_m2_label }}</span>
+        <strong>
+            US$ {{ median_price_per_m2|floatformat:0 }}{{ sector_price_suffix }}
+        </strong>
     </article>
 
     <article class="sector-metric-card">
-        <span>Menor precio por m²</span>
-        <strong>US$ {{ lowest_price_per_m2|floatformat:0 }}</strong>
+        <span>{{ sector_lowest_per_m2_label }}</span>
+        <strong>
+            US$ {{ lowest_price_per_m2|floatformat:0 }}{{ sector_price_suffix }}
+        </strong>
     </article>
 
     <article class="sector-metric-card">
-        <span>Mayor precio por m²</span>
-        <strong>US$ {{ highest_price_per_m2|floatformat:0 }}</strong>
+        <span>{{ sector_highest_per_m2_label }}</span>
+        <strong>
+            US$ {{ highest_price_per_m2|floatformat:0 }}{{ sector_price_suffix }}
+        </strong>
     </article>
-
-    <article class="sector-metric-card sector-opportunity-card">
-        <span>Oportunidades detectadas</span>
+        <article class="sector-metric-card sector-opportunity-card">
+        <span>
+            {% if is_rental_sector %}
+                Alquileres por debajo del mercado
+            {% else %}
+                Oportunidades detectadas
+            {% endif %}
+        </span>
         <strong>{{ opportunities_count }}</strong>
     </article>
 </section>
 
-<h2>Propiedades recientes</h2>
+<h2>
+    {% if is_rental_sector %}
+        Alquileres recientes
+    {% else %}
+        Propiedades recientes
+    {% endif %}
+</h2>
 
 <div class="sector-listings-table">
     <table>
         <thead>
-            <tr>
-                <th>Precio</th>
+           <tr>
+                <th>
+                    {% if is_rental_sector %}Alquiler mensual{% else %}Precio{% endif %}
+                </th>
                 <th>Área</th>
-                <th>Precio por m²</th>
+                <th>
+                    {% if is_rental_sector %}
+                        Alquiler mensual por m²
+                    {% else %}
+                        Precio por m²
+                    {% endif %}
+                </th>
                 <th>Habitaciones</th>
                 <th></th>
             </tr>
@@ -190,16 +247,20 @@
         <tbody>
             {% for listing in listings %}
                 <tr>
-                    <td data-label="Precio">
-                        US$ {{ listing.price|floatformat:0 }}
+                    <td
+                        data-label="{% if is_rental_sector %}Alquiler mensual{% else %}Precio{% endif %}"
+                    >
+                        US$ {{ listing.price|floatformat:0 }}{{ sector_price_suffix }}
                     </td>
 
                     <td data-label="Área">
                         {{ listing.area_m2|floatformat:0 }} m²
                     </td>
 
-                    <td data-label="Precio por m²">
-                        US$ {{ listing.price_per_m2|floatformat:0 }}
+                    <td
+                        data-label="{% if is_rental_sector %}Alquiler mensual por m²{% else %}Precio por m²{% endif %}"
+                    >
+                        US$ {{ listing.price_per_m2|floatformat:0 }} / m²{% if is_rental_sector %} al mes{% endif %}
                     </td>
 
                     <td data-label="Habitaciones">
@@ -221,8 +282,11 @@
 </div>
 
 <p>
-    <a class="source-link" href="{% url 'listings:list' %}?sector={{ sector }}">
-        Ver todas las propiedades en {{ sector }}
+   <a
+        class="source-link"
+        href="{{ sector_catalog_url }}?sector={{ sector|urlencode }}"
+    >
+        {{ sector_catalog_link_label }}
     </a>
 </p>
 {% endblock %}
