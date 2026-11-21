@@ -44,3 +44,40 @@ class PublicSaleListingsApiTests(TestCase):
             {"page": 1, "next_page": None, "count": 0, "results": []},
         )
         self.assertEqual(self.client.get(url, {"page": "abc"}).status_code, 400)
+
+    def test_sector_picker_and_filter_use_the_full_public_catalog(self):
+        """Offer sectors beyond page one and paginate only the selected sector."""
+        sectors = ["El Millón"] + ["Naco"] * 21 + ["Solo alquiler"]
+        for index, sector in enumerate(sectors):
+            Listing.objects.create(
+                source_listing_id=f"sector-test-{index}",
+                source_url=f"https://example.com/sector-test-{index}",
+                sector=sector,
+                city="Santo Domingo",
+                operation_type=(
+                    Listing.OperationType.RENT
+                    if sector == "Solo alquiler"
+                    else Listing.OperationType.SALE
+                ),
+                price="200000.00",
+                area_m2="100.00",
+            )
+
+        url = reverse("api_v1_sale_listings")
+        first = self.client.get(url, {"include_sectors": "1"}).json()
+        self.assertEqual(first["count"], 22)
+        self.assertNotIn("El Millón", [row["sector"] for row in first["results"]])
+        self.assertCountEqual(first["sectors"], ["El Millón", "Naco"])
+
+        filtered = self.client.get(
+            url, {"sector": "El Millón", "include_sectors": "1"}
+        ).json()
+        self.assertEqual(filtered["count"], 1)
+        self.assertEqual([row["sector"] for row in filtered["results"]], ["El Millón"])
+        self.assertIsNone(filtered["next_page"])
+        self.assertCountEqual(filtered["sectors"], ["El Millón", "Naco"])
+
+        second = self.client.get(url, {"sector": "Naco", "page": 2}).json()
+        self.assertEqual(second["count"], 21)
+        self.assertEqual([row["sector"] for row in second["results"]], ["Naco"])
+        self.assertIsNone(second["next_page"])

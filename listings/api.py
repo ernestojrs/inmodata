@@ -21,7 +21,14 @@ def public_sale_listings(request):
         area_m2__gt=0,
     ).order_by("-last_seen_at", "-pk")
 
-    paginator = Paginator(listings,20)
+    # Keep the full public-sale query for the sector picker. A selected sector
+    # narrows the cards and count, but must not hide other available sectors.
+    eligible_sales = listings
+    selected_sector = request.GET.get("sector", "").strip()
+    if selected_sector:
+        listings = eligible_sales.filter(sector=selected_sector)
+
+    paginator = Paginator(listings, 20)
 
     try:
         page = paginator.page(request.GET.get("page", "1"))
@@ -43,9 +50,21 @@ def public_sale_listings(request):
         for listing in page
     ]
 
-    return JsonResponse({
+    payload = {
         "page": page.number,
         "next_page": page.next_page_number() if page.has_next() else None,
         "count": paginator.count,
         "results": results,
-    })
+    }
+
+    # Older app versions receive the same response as before. The new app
+    # requests the picker only when opening or refreshing the first page.
+    if request.GET.get("include_sectors") == "1":
+        payload["sectors"] = list(
+            eligible_sales.exclude(sector="")
+            .order_by("sector")
+            .values_list("sector", flat=True)
+            .distinct()
+        )
+
+    return JsonResponse(payload)
