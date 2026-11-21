@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from core import views as core_views
+from listings.api import public_sale_listings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +31,7 @@ urlpatterns = [
     path("robots.txt", core_views.robots_txt, name="robots_txt"),
     path("datos/", core_views.data_status, name="data_status"),
     path("health/", core_views.health_check, name="health_check"),
+    path("api/v1/listings/sales/", public_sale_listings, name="api_v1_sale_listings"),
     path("ads.txt", core_views.ads_txt, name="ads_txt"),
     path("cuenta/", include("accounts.urls")),
     
