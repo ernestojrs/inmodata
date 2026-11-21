@@ -2,6 +2,8 @@ from django.core.paginator import InvalidPage, Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from .models import Listing
+import re
+from decimal import Decimal
 
 @require_GET
 def public_sale_listings(request):
@@ -27,6 +29,20 @@ def public_sale_listings(request):
     selected_sector = request.GET.get("sector", "").strip()
     if selected_sector:
         listings = eligible_sales.filter(sector=selected_sector)
+
+    # Apply the USD ceiling to the selected sector's results, not to the
+    # sector picker. Prices equal to the buyer's budget are included.
+    raw_max_price = request.GET.get("max_price", "").strip()
+
+    if raw_max_price:
+        if not re.fullmatch(r"[0-9]{1,12}(?:\.[0-9]{1,2})?", raw_max_price):
+            return JsonResponse({"error": "Precio máximo no válido."}, status=400)
+
+        max_price = Decimal(raw_max_price)
+
+        if max_price <=0:
+            return JsonResponse({"error": "Precio máximo no válido."}, status=400)
+        listings = listings.filter(price__lte=max_price)
 
     paginator = Paginator(listings, 20)
 

@@ -81,3 +81,42 @@ class PublicSaleListingsApiTests(TestCase):
         self.assertEqual(second["count"], 21)
         self.assertEqual([row["sector"] for row in second["results"]], ["Naco"])
         self.assertIsNone(second["next_page"])
+
+    def test_max_price_combines_with_sector_and_includes_exact_budget(self):
+        """Include an exact-budget sale, but not a higher price or another sector."""
+        for index, (sector, price) in enumerate([
+            ("Naco", "180000.00"),
+            ("Naco", "250000.00"),
+            ("Naco", "250000.01"),
+            ("Piantini", "190000.00"),
+        ]):
+            Listing.objects.create(
+                source_listing_id=f"budget-{index}",
+                source_url=f"https://example.com/budget-{index}",
+                sector=sector,
+                city="Santo Domingo",
+                operation_type=Listing.OperationType.SALE,
+                price=price,
+                area_m2="100.00",
+            )
+
+        url = reverse("api_v1_sale_listings")
+        data = self.client.get(url, {
+            "sector": "Naco", "max_price": "250000", "include_sectors": "1",
+        }).json()
+
+        self.assertEqual(data["count"], 2)
+        self.assertCountEqual(
+            [(row["sector"], row["price"]) for row in data["results"]],
+            [("Naco", "180000.00"), ("Naco", "250000.00")],
+        )
+        self.assertCountEqual(data["sectors"], ["Naco", "Piantini"])
+        self.assertEqual(self.client.get(url, {"sector": "Naco"}).json()["count"], 3)
+
+    def test_invalid_max_price_returns_400(self):
+        """Reject invalid budgets instead of silently showing unrestricted prices."""
+        url = reverse("api_v1_sale_listings")
+        for value in ("abc", "0", "-1", "12.345", "NaN", "1000000000000"):
+            with self.subTest(value=value):
+                response = self.client.get(url, {"max_price": value})
+                self.assertEqual(response.status_code, 400)
