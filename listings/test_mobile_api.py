@@ -86,7 +86,7 @@ class PublicSaleListingsApiTests(TestCase):
         """Include an exact-budget sale, but not a higher price or another sector."""
         for index, (sector, price) in enumerate([
             ("Naco", "180000.00"),
-            ("Naco", "250000.00"),
+            ("Naco", "250000.00"),                                             
             ("Naco", "250000.01"),
             ("Piantini", "190000.00"),
         ]):
@@ -120,3 +120,42 @@ class PublicSaleListingsApiTests(TestCase):
             with self.subTest(value=value):
                 response = self.client.get(url, {"max_price": value})
                 self.assertEqual(response.status_code, 400)
+
+    def test_min_bedrooms_combines_with_sector_and_budget(self):
+        """Include exact and higher counts, but not unknown or out-of-budget sales."""
+        cases = [
+            ("Naco", 2, "200000"),     # Exact bedroom and budget boundaries.
+            ("Naco", 4, "180000"),     # More bedrooms also qualifies.
+            ("Naco", 1, "180000"),
+            ("Naco", 0, "180000"),
+            ("Naco", None, "180000"),
+            ("Naco", 3, "200001"),
+            ("Piantini", 3, "180000"),
+        ]
+        for index, (sector, bedrooms, price) in enumerate(cases):
+            Listing.objects.create(
+                source_listing_id=f"rooms-{index}",
+                source_url=f"https://example.com/rooms-{index}",
+                sector=sector,
+                city="Santo Domingo",
+                operation_type=Listing.OperationType.SALE,
+                bedrooms=bedrooms,
+                price=price,
+                area_m2="100.00",
+            )
+
+        url = reverse("api_v1_sale_listings")
+        filters = {"sector": "Naco", "max_price": "200000"}
+        filtered = self.client.get(url, {**filters, "bedrooms": "2"}).json()
+        self.assertEqual(filtered["count"], 2)
+        self.assertCountEqual([row["bedrooms"] for row in filtered["results"]], [2, 4])
+
+        # Removing only the bedroom minimum brings back 1, 0, and NULL.
+        self.assertEqual(self.client.get(url, filters).json()["count"], 5)
+
+    def test_invalid_bedroom_minimum_returns_400(self):
+        """Reject unsupported minimums instead of silently ignoring the filter."""
+        url = reverse("api_v1_sale_listings")
+        for value in ("0", "-1", "2.5", "abc", "5"):
+            with self.subTest(value=value):
+                self.assertEqual(self.client.get(url, {"bedrooms": value}).status_code, 400)

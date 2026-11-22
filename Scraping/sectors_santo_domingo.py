@@ -106,6 +106,17 @@ CANONICAL_SANTO_DOMINGO_SECTORS = (
     "Don Honorio",
     "Don Bosco",
     "El Cacique",
+    "El Milloncito",
+    "El Pedregal",
+    "El Vergel",
+    "Enriquillo",
+    "El Portal",
+    "El Vergel",
+    "Enriquillo",
+    "Ensanche Espaillat",
+    "Ensanche Kennedy",
+
+
 
 )
 

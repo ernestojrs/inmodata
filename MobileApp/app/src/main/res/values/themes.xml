@@ -1,0 +1,21 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.InmoData" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <!-- The public catalog uses the website's dark palette in both device modes. -->
+    <style name="Theme.InmoData.Explorer" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">#111827</item>
+        <item name="android:colorBackground">#111827</item>
+        <item name="colorSurface">#1F2937</item>
+        <item name="colorOnSurface">#FFFFFF</item>
+        <item name="colorOnSurfaceVariant">#D1D5DB</item>
+        <item name="colorPrimary">#00B8F0</item>
+        <item name="colorOnPrimary">#111827</item>
+        <item name="colorOutlineVariant">#374151</item>
+    </style>
+
+    <style name="Theme.InmoData" parent="Base.Theme.InmoData" />
+</resources>

@@ -1,0 +1,13 @@
+$env:DATABASE_URL = Read-Host -Prompt "Paste the NEW Render External Database URL"
+
+postgresql://inmodata2_user:2aX8ggZWnkgdfYuaPgw1zWdeugc4X2nN@dpg-dbgjbps9v7es738o72fg-a.oregon-postgres.render.com/inmodata2
+
+python manage.py shell -c "from django.db import connection; print(connection.vendor)"
+
+python manage.py import_listings_csv raw_data\supercasas_listings.csv
+ python manage.py snapshot_market
+ Remove-Item Env:DATABASE_URL
+
+python Scraping\discover_target_urls.py --all-santo-domingo --limit 300
+
+python Scraping\extract_supercasas_to_csv.py --input Scraping\target_urls.txt --limit 5000 --delay 5

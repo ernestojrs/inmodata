@@ -44,6 +44,14 @@ def public_sale_listings(request):
             return JsonResponse({"error": "Precio máximo no válido."}, status=400)
         listings = listings.filter(price__lte=max_price)
 
+    # A positive minimum excludes unknown counts (NULL or 0). Without a
+    # minimum, keep those listings available to buyers browsing all sales.
+    raw_bedrooms = request.GET.get("bedrooms", "").strip()
+    if raw_bedrooms:
+        if raw_bedrooms not in {"1", "2", "3", "4"}:
+           return JsonResponse({"error": "Mínimo de habitaciones no válido."}, status=400)
+        listings = listings.filter(bedrooms__gte=int(raw_bedrooms)) 
+
     paginator = Paginator(listings, 20)
 
     try:
